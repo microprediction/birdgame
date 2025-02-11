@@ -9,7 +9,7 @@ pip install birdgame
 ```
 
 ## Examples 
-
+See [examples](https://github.com/microprediction/birdgame/tree/main/examples)
 
 ## General Bird Game Advice 
 
