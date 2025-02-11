@@ -1,26 +1,34 @@
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import matplotlib.ticker as ticker
 import itertools
 import numpy as np
 
-TIME_WINDOW = 50
+TIME_WINDOW = 500
+HEIGHT = 0.3
+INTERVAL = 300
 
 def animate_birds(gen, TIME_WINDOW=50.0):
     """
     Animate dove + falcons from a generator, but only show data from
-    the last TIME_WINDOW units of time, and force the y-axis to have
+    the last TIME_WINDOW units of time and force the y-axis to have
     a total length of exactly 2 on each update.
 
-    Assumes each record from the generator has:
-      - 'time'            (numeric)
-      - 'dove_location'   (scalar)
-      - 'falcon_id'       (any hashable ID)
-      - 'falcon_location' (scalar)
+    Also force the x-axis to display integers, not scientific notation.
+
+    Assumes each record has:
+      - 'time'
+      - 'dove_location'
+      - 'falcon_id'
+      - 'falcon_location'
     """
 
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    # We'll store all incoming data in lists/dicts
+    # Force x-axis ticks to be integers (no scientific notation)
+    ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+    ax.ticklabel_format(useOffset=False, style='plain', axis='x')
+
     dove_times = []
     dove_locs = []
 
@@ -35,7 +43,6 @@ def animate_birds(gen, TIME_WINDOW=50.0):
         if data is None:
             return  # No more data => stop animation
 
-        # Extract fields
         t = data['time']
         dove_loc = data['dove_location']
         fid = data['falcon_id']
@@ -89,21 +96,20 @@ def animate_birds(gen, TIME_WINDOW=50.0):
         ax.relim()
         ax.autoscale_view()
 
-        # Force the y-axis to be exactly 2 units tall
+        # Force the y-axis to be exactly HEIGHT units tall
         ymin, ymax = ax.get_ylim()
         if ymin != ymax:
             ycenter = 0.5 * (ymin + ymax)
-            ax.set_ylim(ycenter - 0.5, ycenter + 0.5)  # total range = 2
+            ax.set_ylim(ycenter - HEIGHT, ycenter + HEIGHT)  # total range = 2
 
         # Return updated artists
-        all_artists = [dove_line] + [f['scatter'] for f in falcon_data.values()]
-        return all_artists
+        return [dove_line] + [f['scatter'] for f in falcon_data.values()]
 
-    ani = animation.FuncAnimation(fig, update, interval=100, blit=False)
+    ani = animation.FuncAnimation(fig, update, interval=INTERVAL, blit=False)
 
     plt.xlabel("Time")
     plt.ylabel("Location")
-    plt.title("Bird Animation (Fixed Time Window, Y-axis length = 2)")
+    plt.title("Bird Animation (Fixed Time Window + Y-range=2 + Integer X-ticks)")
     plt.legend()
     plt.show()
 
@@ -111,5 +117,4 @@ def animate_birds(gen, TIME_WINDOW=50.0):
 if __name__ == '__main__':
     from birdgame.datasources.remotetestdata import remote_test_data_generator
     gen = remote_test_data_generator()
-
     animate_birds(gen=gen, TIME_WINDOW=TIME_WINDOW)
