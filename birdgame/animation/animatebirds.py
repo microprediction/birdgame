@@ -16,7 +16,7 @@ def animate_birds(gen):
     :param gen:  A generator returning dicts with keys  'dove_location', 'falcon_location', 'time', 'falcon_id'
     :return:
     """
-    fig, ax = plt.subplots(figsize=(12, 6))  # Make the plot larger
+    fig, ax = plt.subplots(figsize=(14, 8))  # Increase plot size further
     buffer_size = 100
     time_window = deque(maxlen=buffer_size)
     dove_locations = deque(maxlen=buffer_size)
@@ -36,6 +36,10 @@ def animate_birds(gen):
         dove_location = data['dove_location']
         falcon_location = data['falcon_location']
         falcon_id = data['falcon_id']
+
+        # Ensure time is sequential
+        if time_window and time <= time_window[-1]:
+            return  # Ignore non-sequential timestamps
 
         # Ensure dove_location is a scalar
         if isinstance(dove_location, (list, np.ndarray)):
@@ -64,9 +68,15 @@ def animate_birds(gen):
         dove_line.set_data(time_window, dove_locations)
 
         # Update falcon scatter points
+        falcon_x, falcon_y = [], []
         for fid, locations in falcon_locations.items():
             if len(locations) == len(time_window):
-                falcon_scatters[fid].set_offsets(np.column_stack((time_window, locations)))
+                falcon_x.extend(time_window)
+                falcon_y.extend(locations)
+
+        # Ensure all falcon points are considered in the plot limits
+        if falcon_x and falcon_y:
+            ax.scatter(falcon_x, falcon_y, color=[colors[fid] for fid in falcon_locations.keys()])
 
         ax.relim()
         ax.autoscale_view()
