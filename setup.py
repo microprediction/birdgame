@@ -21,7 +21,7 @@ setup(
         "Programming Language :: Python :: 3.12",
     ],
     packages=["birdgame",
-              ],
+              "birdgame.datasources"],
     test_suite='pytest',
     tests_require=['pytest','scipy','density','densitypdf'],
     include_package_data=True,

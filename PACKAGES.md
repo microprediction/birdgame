@@ -10,7 +10,6 @@ Provides the `official specification of univariate densities` for the bird game,
 
 Provides the `official evaluation of univariate densities` for the bird game.
 
-
 ### River [github](https://github.com/online-ml/river)
 
 River is a Python library for online machine learning. It aims to be the most user-friendly library for doing machine learning on streaming data. River is the result of a merger between creme and scikit-multiflow.
