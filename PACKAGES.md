@@ -2,11 +2,18 @@
 # A list of potentially useful packages related to online distributional prediction
 
 
+### Density [github](https://github.com/microprediction/density)
+
+Provides the `official specification of univariate densities` for the bird game, and pydantic verification. 
+
+### DensityPdf [github](https://github.com/microprediction/densitypdf)
+
+Provides the `official evaluation of univariate densities` for the bird game.
+
+
 ### River [github](https://github.com/online-ml/river)
 
 River is a Python library for online machine learning. It aims to be the most user-friendly library for doing machine learning on streaming data. River is the result of a merger between creme and scikit-multiflow.
-
-
 
 
 ### Precise [github](https://github.com/microprediction/precise)
