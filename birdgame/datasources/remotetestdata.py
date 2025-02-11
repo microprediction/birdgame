@@ -15,7 +15,7 @@ def remote_test_data_generator(chunksize=1000):
     url = 'https://raw.githubusercontent.com/microprediction/birdgame/refs/heads/main/data/bird_feed_data.csv'
     for chunk in pd.read_csv(url, chunksize=chunksize):
         for k, row in chunk.iterrows():
-            if k>500:
+            if k>2000:
                 yield row.to_dict()
 
 
