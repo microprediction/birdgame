@@ -109,7 +109,7 @@ def animate_birds(gen, TIME_WINDOW=50.0):
 
     plt.xlabel("Time")
     plt.ylabel("Location")
-    plt.title("Bird Animation (Fixed Time Window + Y-range=2 + Integer X-ticks)")
+    plt.title("Bird Animation")
     plt.legend()
     plt.show()
 
