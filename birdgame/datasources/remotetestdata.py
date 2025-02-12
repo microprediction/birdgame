@@ -1,5 +1,8 @@
 import pandas as pd
 
+from birdgame.animation.animatebirds import START_TIME
+
+START_TIME = 90000
 
 def remote_test_data() -> pd.DataFrame:
     return pd.read_csv(
@@ -15,7 +18,7 @@ def remote_test_data_generator(chunksize=1000):
     url = 'https://raw.githubusercontent.com/microprediction/birdgame/refs/heads/main/data/bird_feed_data.csv'
     for chunk in pd.read_csv(url, chunksize=chunksize):
         for k, row in chunk.iterrows():
-            if k>2000:
+            if row['time']>START_TIME:
                 yield row.to_dict()
 
 
