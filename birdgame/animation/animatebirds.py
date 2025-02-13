@@ -5,7 +5,7 @@ import itertools
 import numpy as np
 
 TIME_WINDOW = 500  # or 500, whichever you like
-INTERVAL = 300
+INTERVAL = 100
 HEIGHT = 0.7
 START_TIME = 90000
 
