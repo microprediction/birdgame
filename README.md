@@ -11,6 +11,8 @@ pip install birdgame
 ## Visualize the challenge
 Run [animatebirds.py](https://github.com/microprediction/birdgame/blob/main/birdgame/animation/animatebirds.py) to get a quick sense. 
 
+![](https://github.com/microprediction/birdgame/blob/main/docs/assets/bird_animation.png)
+
 ## Examples 
 See [examples](https://github.com/microprediction/birdgame/tree/main/birdgame/examples). There are:
 
