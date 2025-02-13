@@ -1,58 +1,37 @@
-import typing
-import numpy as np
+from birdgame.trackers.trackerbase import TrackerBase
 from birdgame.stats.fewvar import FEWVar
 import math
+from densitypdf import density_pdf
+import numpy as np
 from birdgame.datasources.remotetestdata import remote_test_data_generator
 
 
-# crunchz/games/birdmodels/empirialgaussbird.py
-
-class EmpiricalGaussMixtureTracker:
+class MixtureTracker(TrackerBase):
     """
     A model that fits a mixture of two Gaussian distributions, one capturing the core
     distribution and another with a larger variance to capture the tails.
-
-    Parameters
-    ----------
-    fading_factor : float
-        Parameter controlling how quickly older data is de-emphasized in variance estimation.
-    horizon : int
-        The "look-ahead" in time after which the recorded data becomes valid for updating.
     """
 
     def __init__(self, fading_factor=0.0001, horizon=10):
+        super().__init__(horizon)
         self.fading_factor = fading_factor
-        self.horizon = horizon
         self.current_x = None
         self.ewa_dx_core = FEWVar(fading_factor=fading_factor)
         self.ewa_dx_tail = FEWVar(fading_factor=fading_factor)
-        self.quarantine = []
-        self.count = 0
         self.weights = [0.95, 0.05]  # Heavily weight the core distribution
 
     def tick(self, payload):
         """
         Ingest a new record (payload), store it internally, and update the
         estimated Gaussian mixture model.
-
-        The core distribution captures regular variance, while the tail distribution
-        captures extreme deviations.
-
-        Parameters
-        ----------
-        payload : dict
-            Must contain 'time' (int/float) and 'dove_location' (float).
         """
-
         x = payload['dove_location']
         t = payload['time']
-        self.quarantine.append((t + self.horizon, x))
+        self.add_to_quarantine(t, x)
         self.current_x = x
+        prev_x = self.pop_from_quarantine(t)
 
-        valid = [(j, (ti, xi)) for (j, (ti, xi)) in enumerate(self.quarantine) if ti <= t]
-
-        if valid:
-            prev_ndx, (ti, prev_x) = valid[-1]
+        if prev_x is not None:
             x_change = x - prev_x
 
             # Winsorize the update for the core estimator to avoid tail effects
@@ -63,7 +42,6 @@ class EmpiricalGaussMixtureTracker:
             # Feed the tail estimator with double the real change magnitude
             self.ewa_dx_tail.update(2.0 * x_change)
 
-            self.quarantine = self.quarantine[:prev_ndx]
             self.count += 1
 
     def predict(self):
@@ -76,19 +54,19 @@ class EmpiricalGaussMixtureTracker:
 
         for i, ewa_dx in enumerate([self.ewa_dx_core, self.ewa_dx_tail]):
             try:
-                x_var = ewa_dx.get_var()
+                x_var = ewa_dx.get()
                 x_std = math.sqrt(x_var)
             except:
                 x_std = 1.0
 
-            if x_std<=1e-6:
-                x_std = 1.0
+            if x_std <= 1e-6:
+                x_std = 1e-6
 
             components.append({
                 "density": {
                     "type": "builtin",
-                    "name": "normal",
-                    "params": {"mu": x_mean, "sigma": x_std}
+                    "name": "norm",
+                    "params": {"loc": x_mean, "scale": x_std}
                 },
                 "weight": self.weights[i]
             })
@@ -97,11 +75,15 @@ class EmpiricalGaussMixtureTracker:
             "type": "mixture",
             "components": components
         }
+
+        # Verify the generated density using density_pdf
+        _ = density_pdf(prediction_rec, x=0.0)  # Ensure the format is valid
+
         return prediction_rec
 
 
 if __name__ == '__main__':
-    tracker = EmpiricalGaussMixtureTracker()
+    tracker = MixtureTracker()
     gen = remote_test_data_generator()
     for payload in gen:
         tracker.tick(payload)

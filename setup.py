@@ -7,7 +7,7 @@ README = (HERE / "README.md").read_text()
 
 setup(
     name="birdgame",
-    version="0.0.1",
+    version="0.0.2",
     description="Utilities to help play the Bird Game at crunchdao.com",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -21,7 +21,13 @@ setup(
         "Programming Language :: Python :: 3.12",
     ],
     packages=["birdgame",
-              "birdgame.datasources"],
+              "birdgame.stats",
+              "birdgame.animation",
+              "birdgame.datasources",
+              "birdgame.examples",
+              "birdgame.examples.selfcontained",
+              "birdgame.examples.derived",
+              "birdgame.trackers"],
     test_suite='pytest',
     tests_require=['pytest','scipy','density','densitypdf'],
     include_package_data=True,
