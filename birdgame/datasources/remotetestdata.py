@@ -1,5 +1,5 @@
 import pandas as pd
-
+import math
 
 def remote_test_data() -> pd.DataFrame:
     return pd.read_csv(
@@ -16,6 +16,7 @@ def remote_test_data_generator(chunksize=1000):
     for chunk in pd.read_csv(url, chunksize=chunksize):
         for k, row in chunk.iterrows():
             if k>500:
+                row['time'] = row['time']/math.pi # don't ask
                 yield row.to_dict()
 
 
