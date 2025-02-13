@@ -1,5 +1,6 @@
 from river import stats
 
+
 class FEWVar(stats.base.Univariate):
 
     def __init__(self, fading_factor=0.01):
@@ -17,7 +18,7 @@ class FEWVar(stats.base.Univariate):
             self.weight_sum = 1
         else:
             # Incrementally update the EWA (mean)
-            weight = (1-self.fading_factor) * self.weight_sum
+            weight = (1 - self.fading_factor) * self.weight_sum
             previous_ewa = self.ewa
             self.ewa = (weight * self.ewa + x) / (weight + 1)
             self.weight_sum = weight + 1
@@ -32,6 +33,9 @@ class FEWVar(stats.base.Univariate):
     def get(self):
         # Return the current exponentially weighted variance
         return self.ewv if self.ewv is not None else 0
+
+    def get_var(self):
+        return self.get()
 
     def get_mean(self):
         # Return the current exponentially weighted mean (for reference)

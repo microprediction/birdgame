@@ -2,6 +2,7 @@ from river import stats
 from collections import deque
 import bisect
 
+
 class FEWMedian(stats.base.Univariate):
     """
     A regular sliding-window median filter.
@@ -17,7 +18,7 @@ class FEWMedian(stats.base.Univariate):
                                for median calculation.
         """
         self.window_size = window_size
-        
+
         # We'll keep both:
         # 1) A deque for easy popping of old samples
         # 2) A sorted list for efficient median computation
@@ -31,17 +32,17 @@ class FEWMedian(stats.base.Univariate):
         """
         # 1) Add x to the right of the _window
         self._window.append(x)
-        
+
         # 2) Insert x into the _sorted_window (kept in sorted order via bisect)
         bisect.insort(self._sorted_window, x)
-        
+
         # 3) If we've exceeded window_size, remove the oldest element from both structures
         if len(self._window) > self.window_size:
             oldest = self._window.popleft()
             # Remove 'oldest' from the sorted list
             idx = bisect.bisect_left(self._sorted_window, oldest)
             self._sorted_window.pop(idx)
-        
+
         return self
 
     def tick(self, x):
@@ -83,6 +84,7 @@ class FEWMedian(stats.base.Univariate):
         instance._window = deque(data['window'])
         instance._sorted_window = data['sorted_window']
         return instance
+
 
 if __name__ == "__main__":
     # Example usage:

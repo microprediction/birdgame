@@ -26,6 +26,9 @@ class FEWMean(stats.base.Univariate):
         # Return the current EWA
         return self.ewa if self.ewa is not None else 0
 
+    def get_mean(self):
+        return self.get()
+
     def to_dict(self):
         """
         Serializes the state of the Modian object to a dictionary.

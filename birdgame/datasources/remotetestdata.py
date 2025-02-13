@@ -9,7 +9,7 @@ def remote_test_data() -> pd.DataFrame:
         'https://raw.githubusercontent.com/microprediction/birdgame/refs/heads/main/data/bird_feed_data.csv')
 
 
-def remote_test_data_generator(chunksize=1000):
+def remote_test_data_generator(chunksize=1000, start_time=TEST_DATA_START_TIME):
     """
     Generate the remote test data yielding one record (dict) at a time.
 
@@ -17,7 +17,7 @@ def remote_test_data_generator(chunksize=1000):
     :param chunksize: Number of rows to read at a time (default is 1000).
     """
     url = 'https://raw.githubusercontent.com/microprediction/birdgame/refs/heads/main/data/bird_feed_data.csv'
-    prev_time = TEST_DATA_START_TIME
+    prev_time = start_time
     for chunk in pd.read_csv(url, chunksize=chunksize):
         for k, row in chunk.iterrows():
             if k > 500:
