@@ -1,6 +1,4 @@
 
-
-
 class TrackerBase:
     """
     Base class that handles quarantining of data points before they are eligible for processing.
