@@ -1,6 +1,6 @@
 # birdgame
 
-Utilities for the Bird Game at [crunchdao.com](https://crunchdao.com).
+Utilities for the Bird Game at [crunchdao.com](https://crunchdao.com). Your task is to predict the dove location. 
 
 ## Install
 
@@ -8,8 +8,18 @@ Utilities for the Bird Game at [crunchdao.com](https://crunchdao.com).
 pip install birdgame
 ```
 
-## Examples 
-See [examples](https://github.com/microprediction/birdgame/tree/main/examples)
+## Visualize the challenge
+Run [animatebirds.py](https://github.com/microprediction/birdgame/blob/main/birdgame/animation/animatebirds.py) to get a quick sense. 
+
+![](https://github.com/microprediction/birdgame/blob/main/docs/assets/bird_animation.png)
+
+## Tracker examples 
+See [examples](https://github.com/microprediction/birdgame/tree/main/birdgame/examples). There are:
+
+- Self-contained examples
+- Examples that build on provided classes
+
+Take your pick! 
 
 ## General Bird Game Advice 
 
