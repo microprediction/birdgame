@@ -14,6 +14,7 @@ def test_remote_test_data_generator():
     first_record = next(generator)
     assert isinstance(first_record, dict)
     assert len(first_record) > 0
+    assert 'time' in first_record
 
 
 if __name__ == '__main__':

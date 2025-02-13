@@ -1,96 +1,138 @@
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import matplotlib.ticker as ticker
 import itertools
-from collections import deque
 import numpy as np
 
+TIME_WINDOW = 500  # or 500, whichever you like
+INTERVAL = 100
+HEIGHT = 0.7
+START_TIME = 90000
 
-def animate_birds(gen):
+def animate_birds(gen, TIME_WINDOW=50.0):
     """
-    Animate birds
-     - Falcons are shown as dots color-coded by their falcon_id
-     - Doves are shown as dots connected by a magenta line
-     - Time is shown on the x-axis
-     - Scroll the plot to show a buffer of 100 observations at a time
-
-    :param gen:  A generator returning dicts with keys  'dove_location', 'falcon_location', 'time', 'falcon_id'
-    :return:
+    Animate dove + falcons from a generator, but only show data from
+    the last TIME_WINDOW units of time, and force the x-axis to be
+    [t - TIME_WINDOW, t]. The y-axis is then set to include all data
+    in that window with a minimum 2.0 total range.
     """
-    fig, ax = plt.subplots(figsize=(14, 8))  # Increase plot size further
-    buffer_size = 100
-    time_window = deque(maxlen=buffer_size)
-    dove_locations = deque(maxlen=buffer_size)
-    falcon_locations = {}  # Dictionary mapping falcon_id to their deque of positions
-    colors = {}  # Dictionary to store falcon colors
-    color_cycle = itertools.cycle(plt.cm.tab10.colors)  # Color cycle for falcons
 
-    dove_line, = ax.plot([], [], 'm-', label='Dove')  # Magenta line for doves
-    falcon_scatters = {}  # Dict to store scatter objects for falcons
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    # Force x-axis ticks to be integers (no scientific notation)
+    ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+    ax.ticklabel_format(useOffset=False, style='plain', axis='x')
+
+    dove_times = []
+    dove_locs = []
+
+    falcon_data = {}
+    color_cycle = itertools.cycle(plt.cm.tab10.colors)
+
+    # Create the dove line
+    dove_line, = ax.plot([], [], 'm-', label='Dove')
 
     def update(frame):
         data = next(gen, None)
         if data is None:
+            # No more data => stop animation
             return
 
-        time = data['time']
-        dove_location = data['dove_location']
-        falcon_location = data['falcon_location']
-        falcon_id = data['falcon_id']
+        t = data['time']
+        dove_loc = data['dove_location']
+        fid = data['falcon_id']
+        floc = data['falcon_location']
 
-        # Ensure time is sequential
-        if time_window and time <= time_window[-1]:
-            return  # Ignore non-sequential timestamps
+        # Optional: Skip out-of-order times
+        if dove_times and t < dove_times[-1]:
+            print(f"Skipping out-of-order time: {t} < {dove_times[-1]}")
+            return
 
-        # Ensure dove_location is a scalar
-        if isinstance(dove_location, (list, np.ndarray)):
-            dove_location = np.mean(dove_location)  # Take mean if it's an array
+        # 1) Append new dove data
+        dove_times.append(t)
+        dove_locs.append(dove_loc)
 
-        # Update time and dove locations
-        time_window.append(time)
-        dove_locations.append(dove_location)
+        # 2) Append new falcon data
+        if fid not in falcon_data:
+            falcon_data[fid] = {
+                't': [],
+                'loc': [],
+                'scatter': ax.scatter([], [],
+                                      color=next(color_cycle),
+                                      label=f'Falcon {fid}')
+            }
+        falcon_data[fid]['t'].append(t)
+        falcon_data[fid]['loc'].append(floc)
 
-        # Ensure falcon_location is a dictionary (handles multiple falcons per frame)
-        if isinstance(falcon_location, dict):
-            for fid, loc in falcon_location.items():
-                if fid not in falcon_locations:
-                    falcon_locations[fid] = deque(maxlen=buffer_size)
-                    colors[fid] = next(color_cycle)
-                    falcon_scatters[fid] = ax.scatter([], [], color=colors[fid])
-                falcon_locations[fid].append(loc)
-        else:  # Single falcon case
-            if falcon_id not in falcon_locations:
-                falcon_locations[falcon_id] = deque(maxlen=buffer_size)
-                colors[falcon_id] = next(color_cycle)
-                falcon_scatters[falcon_id] = ax.scatter([], [], color=colors[falcon_id])
-            falcon_locations[falcon_id].append(falcon_location)
+        # 3) Trim old data outside the last TIME_WINDOW
+        cutoff = t - TIME_WINDOW
+        while dove_times and dove_times[0] < cutoff:
+            dove_times.pop(0)
+            dove_locs.pop(0)
 
-        # Update dove line
-        dove_line.set_data(time_window, dove_locations)
+        for f_id, f_dict in falcon_data.items():
+            f_times = f_dict['t']
+            f_locs  = f_dict['loc']
+            while f_times and f_times[0] < cutoff:
+                f_times.pop(0)
+                f_locs.pop(0)
 
-        # Update falcon scatter points
-        falcon_x, falcon_y = [], []
-        for fid, locations in falcon_locations.items():
-            if len(locations) == len(time_window):
-                falcon_x.extend(time_window)
-                falcon_y.extend(locations)
+        # 4) Update dove line
+        dove_line.set_data(dove_times, dove_locs)
 
-        # Ensure all falcon points are considered in the plot limits
-        if falcon_x and falcon_y:
-            ax.scatter(falcon_x, falcon_y, color=[colors[fid] for fid in falcon_locations.keys()])
+        # 5) Update each falcon scatter
+        for f_id, f_dict in falcon_data.items():
+            sc = f_dict['scatter']
+            xvals = np.array(f_dict['t'])
+            yvals = np.array(f_dict['loc'])
+            sc.set_offsets(np.column_stack((xvals, yvals)))
 
-        ax.relim()
-        ax.autoscale_view()
-        return [dove_line] + list(falcon_scatters.values())
+        # 6) Force the x-limits to show [t - TIME_WINDOW, t]
+        #    (rolling window in time)
+        ax.set_xlim(t - TIME_WINDOW, t)
 
-    ani = animation.FuncAnimation(fig, update, interval=100, blit=False)
+        # 7) Custom manual y-limits: always include min/max + a minimum range
+        all_locs = []
+        all_locs.extend(dove_locs)
+        for f_dict in falcon_data.values():
+            all_locs.extend(f_dict['loc'])
+
+        if len(all_locs) > 0:
+            y_min = np.min(all_locs)
+            y_max = np.max(all_locs)
+            data_range = y_max - y_min
+            forced_range = HEIGHT  # enforce at least this total range
+
+            if data_range == 0:
+                # If all points are the same, make a small range around that point
+                center = y_min
+                half = forced_range / 2
+                ax.set_ylim(center - half, center + half)
+            else:
+                # If data span < forced_range, enforce forced_range
+                if data_range < forced_range:
+                    center = 0.5 * (y_min + y_max)
+                    half = forced_range / 2
+                    ax.set_ylim(center - half, center + half)
+                else:
+                    # If data span > forced_range, add a small margin
+                    margin = 0.05 * data_range
+                    ax.set_ylim(y_min - margin, y_max + margin)
+
+        # Return all updated artists
+        return [dove_line] + [f['scatter'] for f in falcon_data.values()]
+
+    # Create animation
+    ani = animation.FuncAnimation(fig, update, interval=INTERVAL, blit=False)
+
     plt.xlabel("Time")
     plt.ylabel("Location")
     plt.title("Bird Animation")
+    plt.legend()
     plt.show()
 
 
 if __name__ == '__main__':
     from birdgame.datasources.remotetestdata import remote_test_data_generator
-
     gen = remote_test_data_generator()
-    animate_birds(gen=gen)
+    animate_birds(gen=gen, TIME_WINDOW=TIME_WINDOW)
