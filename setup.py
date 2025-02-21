@@ -27,9 +27,10 @@ setup(
               "birdgame.examples",
               "birdgame.examples.selfcontained",
               "birdgame.examples.derived",
+              "birdgame.config",
               "birdgame.trackers"],
     test_suite='pytest',
-    tests_require=['pytest','scipy','density','densitypdf'],
+    tests_require=['pytest','scipy','density','densitypdf','redis','orjson'],
     include_package_data=True,
     install_requires=['pydantic'],
     entry_points={
