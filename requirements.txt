@@ -3,3 +3,5 @@ river
 density
 densitypdf
 matplotlib
+redis
+orjson

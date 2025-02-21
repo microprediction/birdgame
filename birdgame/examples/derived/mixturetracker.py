@@ -3,7 +3,7 @@ from birdgame.stats.fewvar import FEWVar
 import math
 from densitypdf import density_pdf
 import numpy as np
-from birdgame.datasources.remotetestdata import remote_test_data_generator
+from birdgame.datasources.livedata import live_data_generator
 
 
 class MixtureTracker(TrackerBase):
@@ -84,7 +84,7 @@ class MixtureTracker(TrackerBase):
 
 if __name__ == '__main__':
     tracker = MixtureTracker()
-    gen = remote_test_data_generator()
+    gen = live_data_generator()
     for payload in gen:
         tracker.tick(payload)
         pdf = tracker.predict()
