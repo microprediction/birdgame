@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from IPython.display import display
 from sktime.forecasting.ets import AutoETS
 from sktime.forecasting.base import ForecastingHorizon
 from sktime.utils import plotting

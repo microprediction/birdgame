@@ -1,4 +1,5 @@
 import pandas as pd
+from IPython.display import display
 
 
 def find_past_pdf(pdf_history, current_time, horizon):
