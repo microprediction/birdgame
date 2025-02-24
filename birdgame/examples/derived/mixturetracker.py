@@ -1,3 +1,5 @@
+from pprint import pprint
+
 from birdgame.trackers.trackerbase import TrackerBase
 from birdgame.stats.fewvar import FEWVar
 import math

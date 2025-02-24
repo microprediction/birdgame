@@ -5,3 +5,4 @@ densitypdf
 matplotlib
 redis
 orjson
+tqdm
