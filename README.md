@@ -1,6 +1,6 @@
 # birdgame
 
-Utilities for the Bird Game at [crunchdao.com](https://crunchdao.com). Your task is to predict the dove location. 
+Utilities for the Bird Game at [crunchdao.com](https://crunchdao.com). Your task is to track the dove location. 
 
 ## Install
 
@@ -13,14 +13,64 @@ Run [animatebirds.py](https://github.com/microprediction/birdgame/blob/main/bird
 
 ![](https://github.com/microprediction/birdgame/blob/main/docs/assets/bird_animation.png)
 
+
+## Create your Tracker
+
+To create your tracker, you need to define a class that implements the `TrackerBase` interface. Specifically, your class must implement the following methods:
+
+1. **`tick(self, payload)`**  
+   This method is called at every time step to process new payloads. Use this method to update your internal state or logic as needed.
+
+   Payload Example:
+     ```python
+      {
+        "falcon_location": 21.179864629354732,
+        "time": 230.96231205799998,
+        "dove_location": 19.164986723324326,
+        "falcon_id": 1
+      }
+     ```
+2. **`predict(self)`**  
+   This method should return your prediction of the dove's location at a future time step. Ensure that the return format complies with the [density_pdf](https://github.com/microprediction/densitypdf/blob/main/densitypdf/__init__.py) specification.
+
+You can refer to the [Tracker examples](https://github.com/microprediction/birdgame/tree/main/birdgame/examples) for guidance.
+
+## Challenge your Tracker with the benchmark one
+
+To compare your Tracker's performance against the benchmark Tracker, use the `run_test` method provided in the `TrackerBase` class. This method evaluates your Tracker's efficiency over a series of time steps.
+
+### Usage Example:
+```python
+from birdgame.tracker import TrackerBase
+
+class MyTracker(TrackerBase):
+    def tick(self, payload):
+        # Process the payload and update internal state
+        pass
+   
+    def predict(self):
+        # Return the predicted dove location
+        pass
+   
+# Instantiate your Tracker
+tracker = MyTracker()
+
+# Run the test to compare against the benchmark Tracker
+tracker.run_test(
+    live=True, # Set to True to use live streaming data; set to False to use data from a CSV file
+    step_print=1000 # Print the score and progress every 1000 steps
+)
+```
+
+
 ## Tracker examples 
-See [examples](https://github.com/microprediction/birdgame/tree/main/birdgame/examples). There are:
+See [Tracker examples](https://github.com/microprediction/birdgame/tree/main/birdgame/examples). There are:
 
 - Quickstarter Notebooks
 - Self-contained examples
 - Examples that build on provided classes
 
-or [models](https://github.com/microprediction/birdgame/tree/main/birdgame/models) (Self-contained models)
+or [Trackers](https://github.com/microprediction/birdgame/tree/main/birdgame/models) (Self-contained trackers)
 
 Take your pick! 
 
