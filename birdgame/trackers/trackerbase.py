@@ -59,9 +59,9 @@ class TrackerBase(Quarantine):
                 bmark_run.tick_and_predict(payload)
 
                 if (i + 1) % step_print == 0:
-                    print(f"My score: {my_run.score():.4f} VS Benchmark score: {bmark_run.score():.4f}")
+                    print(f"My median score: {my_run.score():.4f} VS Benchmark median score: {bmark_run.score():.4f}")
 
-            print(f"My score: {my_run.score():.4f} VS Benchmark score: {bmark_run.score():.4f}")
+            print(f"My median score: {my_run.score():.4f} VS Benchmark median score: {bmark_run.score():.4f}")
         except KeyboardInterrupt:
             print("Interrupted")
 
