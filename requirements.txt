@@ -7,3 +7,4 @@ redis
 orjson
 tqdm
 numpy
+IPython
