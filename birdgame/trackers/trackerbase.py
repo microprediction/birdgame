@@ -1,4 +1,5 @@
 import abc
+import numpy as np
 
 from birdgame.datasources.livedata import live_data_generator
 from tqdm.auto import tqdm
@@ -90,4 +91,4 @@ class TrackerEvaluator:
             print("No scores to average")
             return 0.0
 
-        return sum(self.scores) / len(self.scores)
+        return float(np.median(self.scores))
