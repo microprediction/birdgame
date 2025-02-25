@@ -77,14 +77,15 @@ class TrackerEvaluator:
             "prediction": prediction
         })
 
-        item = next((item for item in self.quarantine if item["time"] < current_time - self.tracker.horizon), None)
-        if not item:
+        previous_valid_item = next((item for item in reversed(self.quarantine) if item["time"] < current_time - self.tracker.horizon), None)
+        if not previous_valid_item:
             return  # nothing to score
 
-        self.quarantine.remove(item)
+        self.quarantine = [item for item in self.quarantine if item["time"] >= previous_valid_item["time"]]
 
-        density = density_pdf(density_dict=item["prediction"], x=payload['dove_location'])
+        density = density_pdf(density_dict=previous_valid_item["prediction"], x=payload['dove_location'])
         self.scores.append(density)
+
 
     def score(self):
         if not self.scores:
