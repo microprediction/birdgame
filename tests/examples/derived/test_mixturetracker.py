@@ -14,3 +14,7 @@ def test_self():
             break
 
     assert True
+
+def test_run():
+    tracker = MixtureTracker()
+    tracker.test_run(live=False)
