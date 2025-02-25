@@ -37,7 +37,7 @@ You can refer to the [Tracker examples](https://github.com/microprediction/birdg
 
 ## Challenge your Tracker with the benchmark one
 
-To compare your Tracker's performance against the benchmark Tracker, use the `run_test` method provided in the `TrackerBase` class. This method evaluates your Tracker's efficiency over a series of time steps.
+To compare your Tracker's performance against the benchmark Tracker, use the `test_run` method provided in the `TrackerBase` class. This method evaluates your Tracker's efficiency over a series of time steps.
 
 ### Usage Example:
 ```python
@@ -56,7 +56,7 @@ class MyTracker(TrackerBase):
 tracker = MyTracker()
 
 # Run the test to compare against the benchmark Tracker
-tracker.run_test(
+tracker.test_run(
     live=True, # Set to True to use live streaming data; set to False to use data from a CSV file
     step_print=1000 # Print the score and progress every 1000 steps
 )
