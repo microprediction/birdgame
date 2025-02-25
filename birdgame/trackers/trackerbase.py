@@ -4,6 +4,7 @@ from birdgame.datasources.livedata import live_data_generator
 from tqdm.auto import tqdm
 
 from birdgame.datasources.remotetestdata import remote_test_data_generator
+from birdgame.visualization.animated_viz_predictions import animated_predictions_graph
 
 
 class Quarantine:
@@ -63,3 +64,17 @@ class TrackerBase(Quarantine):
             print(f"My score: {my_run.score():.4f} VS Benchmark score: {bmark_run.score():.4f}")
         except KeyboardInterrupt:
             print("Interrupted")
+
+    def test_run_animated(self, live=True, window_size=50, from_notebook=False):
+        from birdgame.model_benchmark.emwavartracker import EMWAVarTracker
+        from birdgame.trackers.tracker_evaluator import TrackerEvaluator
+
+        benchmark_tracker = EMWAVarTracker(horizon=self.horizon)
+        my_run, bmark_run = TrackerEvaluator(self), TrackerEvaluator(benchmark_tracker)
+
+        gen = live_data_generator() if live else remote_test_data_generator()
+
+        use_plt_show = True if not from_notebook else False
+        animated = animated_predictions_graph(gen, my_run, bmark_run, window_size=window_size, use_plt_show=use_plt_show)
+
+        return animated

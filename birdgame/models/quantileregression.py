@@ -94,7 +94,7 @@ class QuantileRegressionRiverTracker(TrackerBase):
             y_mean = self.models["q 0.50"].predict_one({"x": self.current_x})
             y_upper = self.models["q 0.95"].predict_one({"x": self.current_x})
 
-            loc = y_mean
+            loc = x_mean #y_mean
             scale = np.abs((y_upper - y_lower)) / 3.289707253902945    # 3.289707253902945 = (norm.ppf(0.95) - norm.ppf(0.05))
             scale = max(scale, 1e-6)
         else:
