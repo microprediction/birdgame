@@ -59,7 +59,10 @@ class SelfContainedMixtureTrackerExample:
 
             # Winsorize the update for the core estimator to avoid tail effects
             threshold = 2.0 * math.sqrt(self.ewa_dx_core.get() if self.count > 0 else 1.0)
-            winsorized_x_change = np.clip(x_change, -threshold, threshold)
+            if threshold > 0:
+                winsorized_x_change = np.clip(x_change, -threshold, threshold)
+            else:
+                winsorized_x_change = x_change
             self.ewa_dx_core.update(winsorized_x_change)
 
             # Feed the tail estimator with double the real change magnitude
