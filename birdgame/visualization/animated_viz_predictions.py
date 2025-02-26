@@ -4,7 +4,7 @@ from matplotlib.animation import FuncAnimation
 from IPython.display import HTML, display, clear_output
 
 
-def animated_predictions_graph(gen, my_run, bmark_run, window_size=50, use_plt_show=True):
+def animated_predictions_graph(gen, my_run, bmark_run, n_data_points=50, use_plt_show=True):
     """
     Generates an animated graph comparing the observed dove location with the predicted locations from two models: 
     'my_run' and 'bmark_run'.
@@ -16,7 +16,7 @@ def animated_predictions_graph(gen, my_run, bmark_run, window_size=50, use_plt_s
         
     bmark_run : TrackerEvaluator
         
-    window_size : int, optional, default=50
+    n_data_points : int, optional, default=50
         The number of data points to display in the window for each frame of the animation. Older data points 
         are discarded once the window exceeds this size.
     """
@@ -27,8 +27,8 @@ def animated_predictions_graph(gen, my_run, bmark_run, window_size=50, use_plt_s
 
     # Lists to store incoming data
     times, dove_locations= [], []
-    my_predicted_locs, my_scales, my_scores = [], [], []
-    bmark_predicted_locs, bmark_scales, bmark_scores = [], [], []
+    my_predicted_locs, my_scales = [], []
+    bmark_predicted_locs, bmark_scales = [], []
 
     # Create placeholders for the plot elements
     known_scatter, = ax1.plot([], [], "o", color="green", label="Known Dove Location")
@@ -37,8 +37,10 @@ def animated_predictions_graph(gen, my_run, bmark_run, window_size=50, use_plt_s
     bmark_predicted_line, = ax1.plot([], [], "-", color="blue", label="Bmark Predicted")
 
     # Score legend box
-    text_box = ax1.text(1.05, 0.25, "", transform=ax1.transAxes, fontsize=12,
-                        bbox=dict(facecolor='white', alpha=0.6))
+    overall_score_text_box = ax1.text(1.05, 0.30, "", transform=ax1.transAxes, fontsize=12,
+                                    bbox=dict(facecolor='white', alpha=0.6))
+    recent_score_text_box = ax1.text(1.05, 0.10, "", transform=ax1.transAxes, fontsize=12,
+                                    bbox=dict(facecolor='white', alpha=0.6))
 
     ax1.set_xlabel("Time")
     ax1.set_ylabel("Dove Location")
@@ -70,11 +72,13 @@ def animated_predictions_graph(gen, my_run, bmark_run, window_size=50, use_plt_s
 
         my_loc = my_run.loc
         my_scale = my_run.scale
-        my_score = my_run.score()
+        my_overall_score = my_run.overall_median_score()
+        my_recent_score = my_run.recent_median_score()
 
         bmark_loc = bmark_run.loc
         bmark_scale = bmark_run.scale
-        bmark_score = bmark_run.score()
+        bmark_overall_score = bmark_run.overall_median_score()
+        bmark_recent_score = bmark_run.recent_median_score()
 
         if current_time is None or dove_location is None:
             return
@@ -89,24 +93,20 @@ def animated_predictions_graph(gen, my_run, bmark_run, window_size=50, use_plt_s
 
         my_predicted_locs.append(my_loc)
         my_scales.append(my_scale)
-        my_scores.append(my_score)
 
         bmark_predicted_locs.append(bmark_loc)
         bmark_scales.append(bmark_scale)
-        bmark_scores.append(bmark_score)
         
 
         # Keep only last `window_size` points
-        times_trimmed = times[-window_size:]
-        dove_locations_trimmed = dove_locations[-window_size:]
+        times_trimmed = times[-n_data_points:]
+        dove_locations_trimmed = dove_locations[-n_data_points:]
 
-        my_predicted_locs_trimmed = my_predicted_locs[-window_size:]
-        my_scales_trimmed = my_scales[-window_size:]
-        my_scores_trimmed = my_scores[-window_size:]
+        my_predicted_locs_trimmed = my_predicted_locs[-n_data_points:]
+        my_scales_trimmed = my_scales[-n_data_points:]
 
-        bmark_predicted_locs_trimmed = bmark_predicted_locs[-window_size:]
-        bmark_scales_trimmed = bmark_scales[-window_size:]
-        bmark_scores_trimmed = bmark_scores[-window_size:]
+        bmark_predicted_locs_trimmed = bmark_predicted_locs[-n_data_points:]
+        bmark_scales_trimmed = bmark_scales[-n_data_points:]
 
         # Update observed scatter plot
         future_scatter.set_data([times_trimmed[i] for i in range(len(times_trimmed)) if times_trimmed[i] >= current_time - my_run.tracker.horizon],
@@ -137,9 +137,13 @@ def animated_predictions_graph(gen, my_run, bmark_run, window_size=50, use_plt_s
                                             np.array(bmark_predicted_locs_trimmed) + np.array(bmark_scales_trimmed), 
                                             color="blue", alpha=0.2)
 
-        if times_trimmed and my_scores_trimmed:
-            text_box.set_text(f"My median Score:    {my_scores_trimmed[-1]:.4f}\n"
-                            f"Bmark median Score: {bmark_scores_trimmed[-1]:.4f}")
+        if times_trimmed and my_overall_score:
+            overall_score_text_box.set_text(f"Overall:\n"
+                                            f"My median Score:    {my_overall_score:.4f}\n"
+                                            f"Bmark median Score: {bmark_overall_score:.4f}")
+            recent_score_text_box.set_text(f"Recent {my_run.score_window_size} data:\n"
+                                            f"My median Score:    {my_recent_score:.4f}\n"
+                                            f"Bmark median Score: {bmark_recent_score:.4f}")
 
         # Adjust x-axis limits dynamically to center the window
         x_min = times_trimmed[0]
