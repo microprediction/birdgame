@@ -35,9 +35,9 @@ To create your tracker, you need to define a class that implements the `TrackerB
 
 You can refer to the [Tracker examples](https://github.com/microprediction/birdgame/tree/main/birdgame/examples) for guidance.
 
-## Challenge your Tracker with the benchmark one
+## Challenge your Tracker against the benchmark
 
-To compare your Tracker's performance against the benchmark Tracker, use the `test_run` method provided in the `TrackerBase` class. This method evaluates your Tracker's efficiency over a series of time steps.
+To compare your Tracker's performance against the benchmark Tracker, use the `test_run` method provided in the `TrackerBase` class. This method evaluates your Tracker's efficiency over a series of time steps using [density_pdf](https://github.com/microprediction/densitypdf/blob/main/densitypdf/__init__.py) scoring. **A higher score reflects more accurate predictions.**
 
 ### Usage Example:
 ```python

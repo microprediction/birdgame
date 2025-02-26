@@ -19,7 +19,7 @@ class AutoETSsktimeTracker(TrackerBase):
     Parameters
     ----------
     horizon : int
-        The "look-ahead" in time after which the recorded data becomes valid for updating.
+        The number of time steps into the future that predictions should be made for.
     train_model_frequency : int
         The frequency at which the sktime model will be retrained based on the count of observations 
         ingested. This determines how often the model will be updated with new data.
@@ -48,11 +48,7 @@ class AutoETSsktimeTracker(TrackerBase):
         
     def tick(self, payload):
         """
-        Ingest a new record (payload), store it internally and update the
-        estimated Gaussian mixture model.
-
-        The core distribution captures regular variance, while the tail distribution
-        captures extreme deviations.
+        Ingest a new record (payload), store it internally and update the model.
 
         Parameters
         ----------

@@ -15,7 +15,7 @@ class EMWAVarTracker(TrackerBase):
     fading_factor : float
         Parameter controlling how quickly older data is de-emphasized in variance estimation.
     horizon : int
-        The "look-ahead" in time after which the recorded data becomes valid for updating.
+        The number of time steps into the future that predictions should be made for.
     """
 
     def __init__(self, fading_factor=0.0001, horizon=10):
