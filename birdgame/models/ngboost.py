@@ -82,7 +82,7 @@ class NGBoostTracker(TrackerBase):
                 # Fit a single NGBoost model (since we only need one model)
                 self.model.fit(X, y)
 
-                # Keep only latest data
+                # Keep only latest data (to limit memory usage as it will be run on continuous live data)
                 self.x_y_data = self.x_y_data[-(self.num_data_points_max + self.window_size * 2):]
                 self.last_observed_data = self.last_observed_data[-(self.window_size+1):]
             self.count += 1

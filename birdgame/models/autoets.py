@@ -80,7 +80,7 @@ class AutoETSsktimeTracker(TrackerBase):
                 var = self.forecaster.predict_var(fh=self.fh)
                 self.scale = np.sqrt(var.values.flatten()[-1])
 
-                # Update last observed data
+                # Update last observed data (to limit memory usage as it will be run on continuous live data)
                 self.last_observed_data = self.last_observed_data[-(self.num_data_points_max + 2):]
             self.count += 1
 
