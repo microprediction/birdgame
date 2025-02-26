@@ -2,22 +2,6 @@ import pandas as pd
 from IPython.display import display
 
 
-def find_past_pdf(pdf_history, current_time, horizon):
-    """ 
-    Retrieve the most recent valid past probability distribution (PDF) within a given time horizon. 
-    
-    Parameters:
-        pdf_history (list of tuples): A list of past probability distributions with their timestamp
-        current_time (float): The current timestamp
-        horizon (int): The minimum time gap required between `current_time` and the past prediction 
-                       for it to be considered valid
-    """
-    for past_time, past_pdf in reversed(pdf_history):
-        if past_time < current_time - horizon:
-            return past_pdf # Return the first valid past prediction found
-    return None  # No valid past prediction
-
-
 def compute_metric_stats(df: pd.DataFrame):
     """Compute and print median, mean and std of df metrics"""
     stats = df.agg(["median", "mean", "std"]).round(3)
