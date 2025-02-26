@@ -1,10 +1,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from collections import deque
+from itertools import islice
 from matplotlib.animation import FuncAnimation
 from IPython.display import HTML, display, clear_output
 
 
-def animated_predictions_graph(gen, my_run, bmark_run, n_data_points=50, use_plt_show=True):
+def animated_predictions_graph(gen, my_run, bmark_run, n_data_points=50, interval_animation=100, use_plt_show=True):
     """
     Generates an animated graph comparing the observed dove location with the predicted locations from two models: 
     'my_run' and 'bmark_run'.
@@ -19,6 +21,8 @@ def animated_predictions_graph(gen, my_run, bmark_run, n_data_points=50, use_plt
     n_data_points : int, optional, default=50
         The number of data points to display in the window for each frame of the animation. Older data points 
         are discarded once the window exceeds this size.
+    interval_animation: int, optional, default=100
+        Delay between frames in milliseconds. Does not work in a notebook.
     """
     # Initialize figure
     fig, ax1 = plt.subplots(figsize=(10, 5))
@@ -26,9 +30,10 @@ def animated_predictions_graph(gen, my_run, bmark_run, n_data_points=50, use_plt
     plt.subplots_adjust(right=0.75)
 
     # Lists to store incoming data
-    times, dove_locations= [], []
-    my_predicted_locs, my_scales = [], []
-    bmark_predicted_locs, bmark_scales = [], []
+    max_len = n_data_points * 2
+    times, dove_locations= deque(maxlen=max_len), deque(maxlen=max_len)
+    my_predicted_locs, my_scales, my_overall_scores, my_recent_scores = deque(maxlen=max_len), deque(maxlen=max_len), deque(maxlen=max_len), deque(maxlen=max_len)
+    bmark_predicted_locs, bmark_scales, bmark_overall_scores, bmark_recent_scores = deque(maxlen=max_len), deque(maxlen=max_len), deque(maxlen=max_len), deque(maxlen=max_len)
 
     # Create placeholders for the plot elements
     known_scatter, = ax1.plot([], [], "o", color="green", label="Known Dove Location")
@@ -59,9 +64,10 @@ def animated_predictions_graph(gen, my_run, bmark_run, n_data_points=50, use_plt
         if payload is None:
             return  # Stop if generator is exhausted
         
-        if my_run.tracker.count < 200:
-            my_run.tracker.tick(payload)
-            bmark_run.tracker.tick(payload)
+        # if my_run.tracker.count < 200:
+        #     my_run.tracker.tick(payload)
+        #     bmark_run.tracker.tick(payload)
+        #     return
 
         # Run prediction and extract values
         my_run.tick_and_predict(payload)
@@ -93,26 +99,42 @@ def animated_predictions_graph(gen, my_run, bmark_run, n_data_points=50, use_plt
 
         my_predicted_locs.append(my_loc)
         my_scales.append(my_scale)
+        my_overall_scores.append(my_overall_score)
+        my_recent_scores.append(my_recent_score)
 
         bmark_predicted_locs.append(bmark_loc)
         bmark_scales.append(bmark_scale)
+        bmark_overall_scores.append(bmark_overall_score)
+        bmark_recent_scores.append(bmark_recent_score)
         
 
-        # Keep only last `window_size` points
-        times_trimmed = times[-n_data_points:]
-        dove_locations_trimmed = dove_locations[-n_data_points:]
+        ### Keep only last 2 * `n_data_points` points
+        ### The first `n_data_points` points represents the already predicted/known values (the first half)
+        ### The last `n_data_points` points represents the future values (the second half)
+        # Keep the 2 * `n_data_points` points for known and future dove locations
+        times_trimmed_with_future = times
+        dove_locations_trimmed_with_future = dove_locations
 
-        my_predicted_locs_trimmed = my_predicted_locs[-n_data_points:]
-        my_scales_trimmed = my_scales[-n_data_points:]
+        # For predictions values, keep points between [-2*n_data_points:-n_data_points] (the first half)
+        last_known_points = n_data_points if len(times) >= max_len else None # in the beginning, we don't plot future data above horizon
+        times_trimmed = list(islice(times, 0, last_known_points))
+        my_predicted_locs_trimmed = list(islice(my_predicted_locs, 0, last_known_points))
+        my_scales_trimmed = list(islice(my_scales, 0, last_known_points))
+        my_overall_score = my_overall_scores[last_known_points] if last_known_points else my_overall_scores[-1]
+        my_recent_score = my_recent_scores[last_known_points] if last_known_points else my_recent_scores[-1]
 
-        bmark_predicted_locs_trimmed = bmark_predicted_locs[-n_data_points:]
-        bmark_scales_trimmed = bmark_scales[-n_data_points:]
+        bmark_predicted_locs_trimmed = list(islice(bmark_predicted_locs, 0, last_known_points))
+        bmark_scales_trimmed = list(islice(bmark_scales, 0, last_known_points))
+        bmark_overall_score = bmark_overall_scores[last_known_points] if last_known_points else bmark_overall_scores[-1]
+        bmark_recent_score = bmark_recent_scores[last_known_points] if last_known_points else bmark_recent_scores[-1]
+        
+        current_time = times_trimmed[-1]
 
         # Update observed scatter plot
-        future_scatter.set_data([times_trimmed[i] for i in range(len(times_trimmed)) if times_trimmed[i] >= current_time - my_run.tracker.horizon],
-                                [dove_locations_trimmed[i] for i in range(len(times_trimmed)) if times_trimmed[i] >= current_time - my_run.tracker.horizon])
-        known_scatter.set_data([times_trimmed[i] for i in range(len(times_trimmed)) if times_trimmed[i] < current_time - my_run.tracker.horizon],
-                                [dove_locations_trimmed[i] for i in range(len(times_trimmed)) if times_trimmed[i] < current_time - my_run.tracker.horizon])
+        future_scatter.set_data([times_trimmed_with_future[i] for i in range(len(times_trimmed_with_future)) if times_trimmed_with_future[i] >= current_time - my_run.tracker.horizon],
+                                [dove_locations_trimmed_with_future[i] for i in range(len(times_trimmed_with_future)) if times_trimmed_with_future[i] >= current_time - my_run.tracker.horizon])
+        known_scatter.set_data([times_trimmed_with_future[i] for i in range(len(times_trimmed_with_future)) if times_trimmed_with_future[i] < current_time - my_run.tracker.horizon],
+                                [dove_locations_trimmed_with_future[i] for i in range(len(times_trimmed_with_future)) if times_trimmed_with_future[i] < current_time - my_run.tracker.horizon])
 
         # Update predicted mean line
         my_predicted_line.set_data(times_trimmed, my_predicted_locs_trimmed)
@@ -137,7 +159,7 @@ def animated_predictions_graph(gen, my_run, bmark_run, n_data_points=50, use_plt
                                             np.array(bmark_predicted_locs_trimmed) + np.array(bmark_scales_trimmed), 
                                             color="blue", alpha=0.2)
 
-        if times_trimmed and my_overall_score:
+        if times_trimmed and my_overall_score is not None:
             overall_score_text_box.set_text(f"Overall:\n"
                                             f"My median Score:    {my_overall_score:.4f}\n"
                                             f"Bmark median Score: {bmark_overall_score:.4f}")
@@ -159,7 +181,7 @@ def animated_predictions_graph(gen, my_run, bmark_run, n_data_points=50, use_plt
         clear_output(wait=True)
         display(fig)
 
-    ani = FuncAnimation(fig, update, interval=100, blit=False)
+    ani = FuncAnimation(fig, update, interval=interval_animation, blit=False)
 
     if use_plt_show:
         plt.show()
