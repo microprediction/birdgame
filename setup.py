@@ -7,7 +7,7 @@ README = (HERE / "README.md").read_text()
 
 setup(
     name="birdgame",
-    version="0.0.2",
+    version="0.0.3",
     description="Utilities to help play the Bird Game at crunchdao.com",
     long_description=README,
     long_description_content_type="text/markdown",
