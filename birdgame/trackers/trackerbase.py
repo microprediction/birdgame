@@ -1,12 +1,5 @@
 import abc
 
-from birdgame.datasources.livedata import live_data_generator
-from tqdm.auto import tqdm
-
-from birdgame.datasources.remotetestdata import remote_test_data_generator
-from birdgame.visualization.animated_viz_predictions import animated_predictions_graph
-
-
 class Quarantine:
     """
     Base class that handles quarantining of data points before they are eligible for processing.
@@ -74,7 +67,10 @@ class TrackerBase(Quarantine):
         """
         from birdgame.model_benchmark.emwavartracker import EMWAVarTracker
         from birdgame.trackers.tracker_evaluator import TrackerEvaluator
-
+        from birdgame.datasources.livedata import live_data_generator
+        from birdgame.datasources.remotetestdata import remote_test_data_generator
+        from tqdm.auto import tqdm
+        
         benchmark_tracker = EMWAVarTracker(horizon=self.horizon)
         my_run, bmark_run = TrackerEvaluator(self), TrackerEvaluator(benchmark_tracker)
 
@@ -98,6 +94,9 @@ class TrackerBase(Quarantine):
         """
         from birdgame.model_benchmark.emwavartracker import EMWAVarTracker
         from birdgame.trackers.tracker_evaluator import TrackerEvaluator
+        from birdgame.visualization.animated_viz_predictions import animated_predictions_graph
+        from birdgame.datasources.livedata import live_data_generator
+        from birdgame.datasources.remotetestdata import remote_test_data_generator
 
         benchmark_tracker = EMWAVarTracker(horizon=self.horizon)
         my_run, bmark_run = TrackerEvaluator(self, recent_score_window_size), TrackerEvaluator(benchmark_tracker, recent_score_window_size)
