@@ -5,9 +5,11 @@ HERE = pathlib.Path(__file__).parent
 
 README = (HERE / "README.md").read_text()
 
+REQUIREMENTS = (HERE / "requirements.txt").read_text().splitlines()
+
 setup(
     name="birdgame",
-    version="0.0.5",
+    version="0.0.6",
     description="Utilities to help play the Bird Game at crunchdao.com",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -33,9 +35,9 @@ setup(
               "birdgame.visualization"
               ],
     test_suite='pytest',
-    tests_require=['pytest','scipy','density','densitypdf','redis','orjson'],
+    tests_require=['pytest', 'scipy'],
     include_package_data=True,
-    install_requires=['pydantic'],
+    install_requires=REQUIREMENTS,
     entry_points={
         "console_scripts": [
             "birdgame=birdgame.__main__:main",
