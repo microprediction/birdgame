@@ -6,6 +6,7 @@ import math
 from densitypdf import density_pdf
 import numpy as np
 from birdgame.datasources.livedata import live_data_generator
+from pprint import pprint
 
 
 class MixtureTracker(TrackerBase):
@@ -87,15 +88,20 @@ class MixtureTracker(TrackerBase):
         return prediction_rec
 
 
-if __name__ == '__main__':
-    tracker = MixtureTracker()
+def manual_run():
+    # Just an example
     gen = live_data_generator()
     for payload in gen:
         tracker.tick(payload)
         pdf = tracker.predict()
         if tracker.count > 100:
             break
-
-    from pprint import pprint
-
     pprint(pdf)
+
+
+if __name__ == '__main__':
+    tracker = MixtureTracker()
+    tracker.test_run(
+        live=True, # Set to True to use live streaming data; set to False to use data from a CSV file
+        step_print=1000 # Print the score and progress every 1000 steps
+    )
