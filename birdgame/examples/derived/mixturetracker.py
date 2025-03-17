@@ -21,7 +21,7 @@ class MixtureTracker(TrackerBase):
         self.current_x = None
         self.ewa_dx_core = FEWVar(fading_factor=fading_factor)
         self.ewa_dx_tail = FEWVar(fading_factor=fading_factor)
-        self.weights = [0.95, 0.05]  # Heavily weight the core distribution
+        self.weights = [0.9, 0.1]  # Heavily weight the core distribution
 
     def tick(self, payload):
         """
@@ -88,9 +88,10 @@ class MixtureTracker(TrackerBase):
         return prediction_rec
 
 
-def manual_run():
+def example_of_testing_manually():
     # Just an example
     gen = live_data_generator()
+    pdf = None
     for payload in gen:
         tracker.tick(payload)
         pdf = tracker.predict()

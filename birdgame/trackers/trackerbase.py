@@ -60,6 +60,18 @@ class TrackerBase(Quarantine):
         """
         pass
 
+    @staticmethod
+    def report_relative_likelihood(log_like, bmark_log_like):
+        print(
+            f"My likelihood score: {log_like:.4f} VS Benchmark likelihood score: {bmark_log_like:.4f}")
+        if log_like > bmark_log_like:
+            print(
+                f'     .... and mine is better. Ratio is {log_like / bmark_log_like:.5f}')
+        else:
+            print(
+                f'     .... and mine is worse. Ratio is {log_like / bmark_log_like:.5f}'
+            )
+
     def test_run(self, live=True, step_print=1000):
         """
         Run a test simulation using either live or static remote test data.
@@ -82,9 +94,12 @@ class TrackerBase(Quarantine):
                 bmark_run.tick_and_predict(payload)
 
                 if (i + 1) % step_print == 0:
-                    print(f"My median score: {my_run.overall_median_score():.4f} VS Benchmark median score: {bmark_run.overall_median_score():.4f}")
+                    TrackerBase.report_relative_likelihood(log_like=my_run.overall_likelihood_score(),
+                                                    bmark_log_like=bmark_run.overall_likelihood_score())
+            self.report_relative_likelihood(log_like=my_run.overall_likelihood_score(),
+                                            bmark_log_like=bmark_run.overall_likelihood_score())
 
-            print(f"My median score: {my_run.overall_median_score():.4f} VS Benchmark median score: {bmark_run.overall_median_score():.4f}")
+
         except KeyboardInterrupt:
             print("Interrupted")
 

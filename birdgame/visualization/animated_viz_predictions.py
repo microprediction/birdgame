@@ -78,13 +78,13 @@ def animated_predictions_graph(gen, my_run, bmark_run, n_data_points=50, interva
 
         my_loc = my_run.loc
         my_scale = my_run.scale
-        my_overall_score = my_run.overall_median_score()
-        my_recent_score = my_run.recent_median_score()
+        my_overall_score = my_run.overall_likelihood_score()
+        my_recent_score = my_run.recent_likelihood_score()
 
         bmark_loc = bmark_run.loc
         bmark_scale = bmark_run.scale
-        bmark_overall_score = bmark_run.overall_median_score()
-        bmark_recent_score = bmark_run.recent_median_score()
+        bmark_overall_score = bmark_run.overall_likelihood_score()
+        bmark_recent_score = bmark_run.recent_likelihood_score()
 
         if current_time is None or dove_location is None:
             return

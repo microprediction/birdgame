@@ -6,6 +6,11 @@ from densitypdf import density_pdf
 from birdgame.trackers.trackerbase import Quarantine, TrackerBase
 
 
+def robust_mean_log_like(scores):
+    log_scores = np.log(1e-10 + np.array(scores))
+    return np.mean(log_scores)
+
+
 class TrackerEvaluator(Quarantine):
     def __init__(self, tracker: TrackerBase, score_window_size: int = 100):
         """
@@ -26,9 +31,9 @@ class TrackerEvaluator(Quarantine):
         self.latest_scores = deque(maxlen=score_window_size)  # Keeps only the last `score_window_size` scores
 
         self.time = None
-        self.loc = None
-        self.scale = None
         self.dove_location = None
+        self.loc = None           # The location and scale aren't really accurate but this is only used for visualization
+        self.scale = None
 
     def tick_and_predict(self, payload: dict):
         """
@@ -50,9 +55,8 @@ class TrackerEvaluator(Quarantine):
 
         self.time = current_time
         self.dove_location = payload['dove_location']
-        self.update_loc_and_scale(density_dict=prev_prediction)
 
-    def overall_median_score(self):
+    def overall_likelihood_score(self):
         """
         Return the median score over all recorded scores.
         """
@@ -60,9 +64,9 @@ class TrackerEvaluator(Quarantine):
             print("No scores to average")
             return 0.0
 
-        return float(np.median(self.scores))
+        return float(robust_mean_log_like(self.scores))
     
-    def recent_median_score(self):
+    def recent_likelihood_score(self):
         """
         Return the median score of the most recent `score_window_size` scores.
         """
@@ -70,8 +74,9 @@ class TrackerEvaluator(Quarantine):
             print("No recent scores available.")
             return 0.0
         
-        return float(np.median(self.latest_scores))
-    
+        return float(robust_mean_log_like(self.latest_scores))
+
+
     def update_loc_and_scale(self, density_dict):
         dist_type = density_dict.get("type")
         if dist_type == "mixture":
