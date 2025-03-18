@@ -1,4 +1,4 @@
-# birdgame  ![tests](https://github.com/microprediction/birdgame/workflows/tests/badge.svg)
+# birdgame  ![tests_312](https://github.com/microprediction/birdgame/workflows/tests_312/badge.svg)
 
 Utilities for the Bird Game at [crunchdao.com](https://crunchdao.com). Your task is to track the dove location.  
 
