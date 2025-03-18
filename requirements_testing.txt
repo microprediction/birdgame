@@ -1,1 +1,3 @@
 pytest
+statsmodels
+sktime

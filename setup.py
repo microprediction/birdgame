@@ -35,7 +35,7 @@ setup(
               "birdgame.visualization"
               ],
     test_suite='pytest',
-    tests_require=['pytest', 'scipy'],
+    tests_require=['pytest', 'scipy','statsmodels','sktime'],
     include_package_data=True,
     install_requires=REQUIREMENTS,
     entry_points={
