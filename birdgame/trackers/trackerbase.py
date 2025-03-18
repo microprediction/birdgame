@@ -72,7 +72,7 @@ class TrackerBase(Quarantine):
                 f'     .... and mine is worse. Ratio is {log_like / bmark_log_like:.5f}'
             )
 
-    def test_run(self, live=True, step_print=1000):
+    def test_run(self, live=True, step_print=1000, max_rows=None):
         """
         Run a test simulation using either live or static remote test data.
         Compare the performance of the current tracker with a benchmark model.
@@ -86,7 +86,7 @@ class TrackerBase(Quarantine):
         benchmark_tracker = EMWAVarTracker(horizon=self.horizon)
         my_run, bmark_run = TrackerEvaluator(self), TrackerEvaluator(benchmark_tracker)
 
-        gen = live_data_generator() if live else remote_test_data_generator()
+        gen = live_data_generator() if live else remote_test_data_generator(max_rows=max_rows)
         try:
             for i, payload in enumerate(tqdm(gen)):
 
