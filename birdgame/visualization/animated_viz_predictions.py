@@ -4,6 +4,7 @@ from collections import deque
 from itertools import islice
 from matplotlib.animation import FuncAnimation
 from IPython.display import HTML, display, clear_output
+from .utils import get_loc_and_scale
 
 
 def animated_predictions_graph(gen, my_run, bmark_run, n_data_points=50, interval_animation=100, use_plt_show=True):
@@ -76,13 +77,11 @@ def animated_predictions_graph(gen, my_run, bmark_run, n_data_points=50, interva
         current_time = my_run.time
         dove_location = my_run.dove_location
 
-        my_loc = my_run.loc
-        my_scale = my_run.scale
+        my_loc, my_scale = get_loc_and_scale(my_run.latest_valid_prediction)
         my_overall_score = my_run.overall_likelihood_score()
         my_recent_score = my_run.recent_likelihood_score()
 
-        bmark_loc = bmark_run.loc
-        bmark_scale = bmark_run.scale
+        bmark_loc, bmark_scale = get_loc_and_scale(bmark_run.latest_valid_prediction)
         bmark_overall_score = bmark_run.overall_likelihood_score()
         bmark_recent_score = bmark_run.recent_likelihood_score()
 
@@ -161,11 +160,11 @@ def animated_predictions_graph(gen, my_run, bmark_run, n_data_points=50, interva
 
         if times_trimmed and my_overall_score is not None:
             overall_score_text_box.set_text(f"Overall:\n"
-                                            f"My median Score:    {my_overall_score:.4f}\n"
-                                            f"Bmark median Score: {bmark_overall_score:.4f}")
+                                            f"My likelihood Score:    {my_overall_score:.4f}\n"
+                                            f"Bmark likelihood Score: {bmark_overall_score:.4f}")
             recent_score_text_box.set_text(f"Recent {my_run.score_window_size} data:\n"
-                                            f"My median Score:    {my_recent_score:.4f}\n"
-                                            f"Bmark median Score: {bmark_recent_score:.4f}")
+                                            f"My likelihood Score:    {my_recent_score:.4f}\n"
+                                            f"Bmark likelihood Score: {bmark_recent_score:.4f}")
 
         # Adjust x-axis limits dynamically to center the window
         x_min = times_trimmed[0]
