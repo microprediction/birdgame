@@ -153,3 +153,13 @@ if using_ngboost:
 
 else:
     NGBoostTracker = None
+
+
+
+
+if __name__ == '__main__':
+    tracker = NGBoostTracker()
+    tracker.test_run(
+        live=False, # Set to True to use live streaming data; set to False to use data from a CSV file
+        step_print=2000 # How often to print scores
+    )

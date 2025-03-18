@@ -1,11 +1,11 @@
 
-from birdgame.examples.derived.autoetstracker import AutoETSsktimeTracker
+from birdgame.examples.derived.gmmtracker import GMMTracker
 
 
+if GMMTracker is not None:
 
-def test_autoets_test_run():
-    if AutoETSsktimeTracker is not None:
-        tracker = AutoETSsktimeTracker()
+    def test_gmm_test_run():
+        tracker = GMMTracker()
         tracker.test_run(
             max_rows=1000,
             live=False, # Set to True to use live streaming data; set to False to use data from a CSV file
