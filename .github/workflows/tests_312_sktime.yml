@@ -38,11 +38,9 @@ jobs:
     
     - name: Install test dependencies
       run: |
-        pip install -r requirements_tests.txt
+        pip install -r requirements.txt
         pip install sktime statsmodels
     
     - name: Checkout quarantine branch and run tests
       run: |
-        git fetch origin quarantine:quarantine
-        git checkout quarantine
         pytest
