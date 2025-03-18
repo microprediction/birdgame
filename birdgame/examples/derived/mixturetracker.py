@@ -15,7 +15,7 @@ class MixtureTracker(TrackerBase):
     distribution and another with a larger variance to capture the tails.
     """
 
-    def __init__(self, fading_factor=0.0001, horizon=10):
+    def __init__(self, fading_factor=0.0001, horizon=3):
         super().__init__(horizon)
         self.fading_factor = fading_factor
         self.current_x = None
