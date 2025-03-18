@@ -38,6 +38,7 @@ jobs:
     
     - name: Install test dependencies
       run: |
+        pip install pytest
         pip install -r requirements.txt
         pip install ngboost
         pip install scikit-learn
