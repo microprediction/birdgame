@@ -5,8 +5,11 @@ from birdgame.trackers.trackerbase import TrackerBase
 from birdgame.datasources.livedata import live_data_generator
 from densitypdf import density_pdf
 from birdgame.examples.derived.mixturetracker import MixtureTracker
+from birdgame.stats.fewvar import FEWVar
 
 # scikit-learn GMM
+# the fit takes about 15ms which is slow
+
 try:
     from sklearn.mixture import GaussianMixture
     using_sklearn=True
@@ -60,9 +63,11 @@ if using_sklearn:
                 max_iter=200
             )
             self.is_fitted = False
+            self.ewa_fit_cpu = FEWVar(fading_factor=0.1)
             self.x_changes = []
             self.batch_size = batch_size
             self.data_shrinkage = data_shrinkage
+
 
             # Misc
             self.count = 0
@@ -91,8 +96,16 @@ if using_sklearn:
 
                 # Fit GMM if we have enough new differences
                 if len(self.x_changes) % self.batch_size==0:
+                    import time
+                    st = time.time()
                     self._refit_gmm()
+                    self.ewa_fit_cpu.update(time.time()-st)
                     self.x_changes = self.x_changes[-self.window_len:]
+                    print(self.emit_cpu())
+
+        def emit_cpu(self):
+            import math
+            return {'mean_fit_ms':self.ewa_fit_cpu.get_mean()*1000,'std_fit_ms':1000*math.sqrt(self.ewa_fit_cpu.get_var()+1e-1)}
 
         def _refit_gmm(self):
             """
@@ -171,7 +184,7 @@ if using_sklearn:
             _ = density_pdf(mixture_dict, x=0.0)
             return mixture_dict
 else:
-    GMMTracker = None 
+    GMMTracker = None
 
 
 
