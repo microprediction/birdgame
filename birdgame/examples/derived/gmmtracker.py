@@ -105,7 +105,7 @@ if using_sklearn:
 
         def emit_cpu(self):
             import math
-            return {'mean_fit_ms':self.ewa_fit_cpu.get_mean()*1000,'std_fit_ms':1000*math.sqrt(self.ewa_fit_cpu.get_var()+1e-1)}
+            return {'mean_fit_ms':self.ewa_fit_cpu.get_mean()*1000,'std_fit_ms':1000*math.sqrt(self.ewa_fit_cpu.get_var()+1e-10)}
 
         def _refit_gmm(self):
             """
