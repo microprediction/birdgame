@@ -45,6 +45,4 @@ jobs:
     
     - name: Checkout quarantine branch and run tests
       run: |
-        git fetch origin quarantine:quarantine
-        git checkout quarantine
         pytest
