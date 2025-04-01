@@ -114,3 +114,16 @@ A **mixture density**, such as the gaussion mixture $\sum_{i=1}^{K} w_i \mathcal
 - [Literature](https://github.com/microprediction/birdgame/blob/main/LITERATURE.md) 
 - Useful Python [packages](https://github.com/microprediction/birdgame/blob/main/PACKAGES.md)
 
+
+
+## Column Names and Tool Tips
+
+| **Column**           | **Description**                                                                                              |
+|----------------------|--------------------------------------------------------------------------------------------------------------|
+| **Model**            |                                                         |
+| **Active Wealth**    | The wealth that is currently at risk.                                                                        |
+| **Cumulative Prize** | Active Wealth is prevented from growing too large by withdrawals (prizes).                                   |
+| **Total Wealth**     | The sum of cumulative prizes and active wealth, and thus a measure of overall success.                       |
+| **Longevity**        | The number of observations since a player entered the game.                                                  |
+| **Log Likelihood**   | An exponentially weighted average of ex-post log-likelihood.                                                 |
+
