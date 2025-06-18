@@ -10,7 +10,8 @@ def get_redis_config():
             'port': 6381,
             'ssl_ca_certs': os.path.join(CERTIFICATES_DIRECTORY, 'certificates/ca.crt'),
             'ssl': True,
-            'decode_responses': True
+            'decode_responses': True,
+            "ssl_cert_reqs": "none"
             }
 
 
