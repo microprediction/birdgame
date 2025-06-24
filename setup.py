@@ -23,6 +23,11 @@ setup(
         "Programming Language :: Python :: 3.12",
     ],
     packages=find_packages(include=["birdgame", "birdgame.*"]),
+    package_data={
+        "birdgame": [
+            "config/certificates/ca.crt",
+        ]
+    },
     test_suite='pytest',
     tests_require=['pytest', 'scipy','statsmodels','sktime'],
     include_package_data=True,
