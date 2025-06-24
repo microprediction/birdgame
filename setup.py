@@ -9,7 +9,7 @@ REQUIREMENTS = (HERE / "requirements.txt").read_text().splitlines()
 
 setup(
     name="birdgame",
-    version="0.0.13",
+    version="0.0.14",
     description="Utilities to help play the Bird Game at crunchdao.com",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -22,18 +22,12 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.12",
     ],
-    packages=["birdgame",
-              "birdgame.stats",
-              "birdgame.animation",
-              "birdgame.datasources",
-              "birdgame.examples",
-              "birdgame.examples.selfcontained",
-              "birdgame.examples.derived",
-              "birdgame.config",
-              "birdgame.trackers",
-              "birdgame.model_benchmark",
-              "birdgame.visualization"
-              ],
+    packages=find_packages(include=["birdgame", "birdgame.*"]),
+    package_data={
+        "birdgame": [
+            "config/certificates/ca.crt",
+        ]
+    },
     test_suite='pytest',
     tests_require=['pytest', 'scipy','statsmodels','sktime'],
     include_package_data=True,
