@@ -66,7 +66,7 @@ def live_data_generator(start_from_latest=True):
                             raise ValueError(f"Failed to decode payload '{BIRD_PAYLOAD_NAME}': {e}")
 
 
-                        key_order = ['time', 'falcon_location', 'dove_location', 'falcon_id', 'falcon_wingspan'],
+                        key_order = ['time', 'falcon_location', 'dove_location', 'falcon_id', 'falcon_wingspan']
                         data = {k: data[k] for k in key_order}
 
                         yield data
