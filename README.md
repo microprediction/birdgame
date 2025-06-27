@@ -27,6 +27,7 @@ To create your tracker, you need to define a class that implements the `TrackerB
         "falcon_location": 21.179864629354732,
         "time": 230.96231205799998,
         "dove_location": 19.164986723324326,
+        "falcon_wingspan": 0.28467,
         "falcon_id": 1
       }
      ```

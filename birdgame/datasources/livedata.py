@@ -17,11 +17,9 @@ def live_data_generator(start_from_latest=True):
     """
        Generate data from the bird game. by default this will read from the start of the stream and then transition to live play.
 
-        {'time': 96358382, 'falcon_location': 9458.498520155423, 'dove_location': 9458.502255534888, 'falcon_id': 11}
-        {'time': 96358382, 'falcon_location': 9458.517620971368, 'dove_location': 9458.502757986242, 'falcon_id': 0}
-        {'time': 96358382, 'falcon_location': 9458.45873633578, 'dove_location': 9458.502757986242, 'falcon_id': 2}
-
-
+        {'time': 96358382, 'falcon_location': 9458.498520155423, 'dove_location': 9458.502255534888, 'falcon_id': 11, 'falcon_wingspan': 0.28467}
+        {'time': 96358382, 'falcon_location': 9458.517620971368, 'dove_location': 9458.502757986242, 'falcon_id': 0, 'falcon_wingspan': 0.873}
+        {'time': 96358382, 'falcon_location': 9458.45873633578, 'dove_location': 9458.502757986242, 'falcon_id': 2, 'falcon_wingspan': 1.23}
     :return:
     """
     config = get_redis_config()
@@ -68,7 +66,7 @@ def live_data_generator(start_from_latest=True):
                             raise ValueError(f"Failed to decode payload '{BIRD_PAYLOAD_NAME}': {e}")
 
 
-                        key_order = ['time', 'falcon_location', 'dove_location', 'falcon_id']
+                        key_order = ['time', 'falcon_location', 'dove_location', 'falcon_id', 'falcon_wingspan'],
                         data = {k: data[k] for k in key_order}
 
                         yield data
