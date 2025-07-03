@@ -22,7 +22,7 @@ class AnimatorFunctions:
         display(figure)
 
 
-class ColabAnimatorFunctions:
+class ColabAnimatorFunctions(AnimatorFunctions):
     def setup(self):
         self._javascript("""
         const outputBody = document.getElementById('output-body');
@@ -108,6 +108,9 @@ def animate(
 
             for value in tqdm(iterator):
                 figure = animate(value)
+                if figure is None:
+                    continue
+
                 functions.show(figure)
 
                 plt.pause(interval)
