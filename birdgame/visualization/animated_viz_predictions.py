@@ -5,6 +5,7 @@ from itertools import islice
 from matplotlib.animation import FuncAnimation
 from IPython.display import HTML, display, clear_output
 from .utils import get_loc_and_scale
+from .animator import animate
 
 
 def animated_predictions_graph(gen, my_run, bmark_run, n_data_points=50, interval_animation=100, use_plt_show=True):
@@ -176,13 +177,18 @@ def animated_predictions_graph(gen, my_run, bmark_run, n_data_points=50, interva
         ax1.relim()
         ax1.autoscale_view()
 
-        # Force a real-time update of the plot
-        clear_output(wait=True)
-        display(fig)
+        return fig
+    
+    def infinite():
+        while True:
+            yield None
 
-    ani = FuncAnimation(fig, update, interval=interval_animation, blit=False)
+    animate(
+        infinite(),
+        update,
+        interval=interval_animation,
+        environment='auto',
+    )
 
     if use_plt_show:
         plt.show()
-
-    return ani
