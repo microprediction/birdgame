@@ -83,7 +83,7 @@ class ColabAnimatorFunctions(AnimatorFunctions):
 def animate(
     iterator: typing.Any,
     animate: typing.Callable[[typing.Any], None],
-    interval=0.1,
+    interval=100,
     environment: typing.Literal['auto', 'generic' 'colab'] = 'auto',
 ):
     if environment == 'auto':
@@ -101,6 +101,8 @@ def animate(
         functions = AnimatorFunctions()
     else:
         raise ValueError(f"Unknown environment: {environment}")
+
+    interval /= 1000
 
     with plt.ioff():
         try:
