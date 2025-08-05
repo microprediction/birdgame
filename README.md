@@ -36,6 +36,52 @@ To create your tracker, you need to define a class that implements the `TrackerB
 
 You can refer to the [Tracker examples](https://github.com/microprediction/birdgame/tree/main/birdgame/examples) for guidance.
 
+## Check your Tracker performance
+
+Add in an optional parameter called performance_metrics to your tick method to obtain a dictionary of your performance metrics at each tick. This dictionary contains your wealth, likelihood_ewa, and recent_likelihood_ewa at the time of the current tick.
+
+### Usage Example:
+```python
+def tick(self, payload, performance_metrics):
+    print(f"performance_metrics: {performance_metrics}")
+```
+
+Since performance_metrics is an optional parameter, the tick method signature can also look like tick(self, payload).
+You can find this implemented in the [Quickstarter Notebooks](https://github.com/microprediction/birdgame/tree/main/birdgame/examples/quickstarters) and in the [Example Models](https://github.com/microprediction/birdgame/tree/main/birdgame/models)
+
+
+## Warm up your Tracker
+
+You can implement a warm up period for your Tracker. During this period, your model is trained on the data without changing wealth. 
+
+The warm up period can also be triggered by checking a field in the performance metrics as shown below:
+
+### Usage Example:
+```python
+class MyTracker(TrackerBase):
+
+    def __init__(self, warmup=0):
+        self.warmup_cutoff = warmup
+        self.tick_count = 0
+    
+    def tick(self, payload):
+        # Process the payload and update internal state
+
+        # To trigger a warm up:
+        if performance_metrics['recent_likelihood_ewa'] < 1.1:
+            self.tick_count = 0
+
+        self.tick_count += 1
+    
+    def predict(self):
+        # Return the predicted dove location
+        if self.tick_count < self.warmup_cutoff:
+            return None
+        pass
+```
+
+To see this integrated into the example models, you can refer to the (commented out code in) [Quickstarter Notebooks](https://github.com/microprediction/birdgame/tree/main/birdgame/examples/quickstarters) and the [Example Models](https://github.com/microprediction/birdgame/tree/main/birdgame/models).
+
 ## Challenge your Tracker against the benchmark
 
 To compare your Tracker's performance against the benchmark Tracker, use the `test_run` method provided in the `TrackerBase` class. This method evaluates your Tracker's efficiency over a series of time steps using [density_pdf](https://github.com/microprediction/densitypdf/blob/main/densitypdf/__init__.py) scoring. **A higher score reflects more accurate predictions.**
