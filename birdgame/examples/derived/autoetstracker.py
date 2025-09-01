@@ -67,7 +67,7 @@ if using_sktime:
             # or Fit the AutoARIMA forecaster
             # self.forecaster = AutoARIMA(max_p=2, max_d=1, max_q=2, maxiter=10)
 
-        def tick(self, payload):
+        def tick(self, payload, performance_metrics):
             """
             Ingest a new record (payload), store it internally and update the model.
 

@@ -60,13 +60,13 @@ class VolScaledGMMTracker(TrackerBase):
         # We can clamp extreme scale factors
         self.scale_cap = scale_cap
 
-    def tick(self, payload):
+    def tick(self, payload, performance_metrics):
         """
         Pass the incoming data point to the GMMTracker as usual, and also
         feed the difference to our FEWVar for short-term variance.
         """
         # 1) Update the underlying GMMTracker
-        self.gmm_tracker.tick(payload)
+        self.gmm_tracker.tick(payload, performance_metrics)
 
         # 2) Our own short-horizon difference logic
         x = payload["dove_location"]
