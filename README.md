@@ -64,11 +64,13 @@ class MyTracker(TrackerBase):
         self.warmup_cutoff = warmup
         self.tick_count = 0
     
-    def tick(self, payload):
+    def tick(self, payload, performance_metrics):
         # Process the payload and update internal state
 
-        # To trigger a warm up:
-        if performance_metrics['recent_likelihood_ewa'] < 1.1:
+        # To trigger a warm up based on a specific performance metric:
+        recent_likelihood_ewa = performance_metrics['recent_likelihood_ewa']
+        total_wealth = performance_metrics['wealth']
+        if (recent_likelihood_ewa < 1.1 or total_wealth < 1000):
             self.tick_count = 0
 
         self.tick_count += 1
