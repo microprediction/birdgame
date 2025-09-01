@@ -93,7 +93,7 @@ To compare your Tracker's performance against the benchmark Tracker, use the `te
 from birdgame.tracker import TrackerBase
 
 class MyTracker(TrackerBase):
-    def tick(self, payload):
+    def tick(self, payload, performance_metrics):
         # Process the payload and update internal state
         pass
    

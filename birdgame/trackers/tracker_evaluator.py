@@ -34,11 +34,11 @@ class TrackerEvaluator(Quarantine):
         self.dove_location = None
         self.latest_valid_prediction = None
 
-    def tick_and_predict(self, payload: dict):
+    def tick_and_predict(self, payload: dict, performance_metrics: dict = None):
         """
         Process a new data point, make a prediction and evaluate it.
         """
-        self.tracker.tick(payload)
+        self.tracker.tick(payload, performance_metrics)
         prediction = self.tracker.predict()
 
         current_time = payload['time']

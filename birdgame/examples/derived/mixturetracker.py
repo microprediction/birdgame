@@ -23,7 +23,7 @@ class MixtureTracker(TrackerBase):
         self.ewa_dx_tail = FEWVar(fading_factor=fading_factor)
         self.weights = [0.9, 0.1]  # Heavily weight the core distribution
 
-    def tick(self, payload):
+    def tick(self, payload, performance_metrics):
         """
         Ingest a new record (payload), store it internally, and update the
         estimated Gaussian mixture model.

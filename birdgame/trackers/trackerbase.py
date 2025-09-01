@@ -47,7 +47,7 @@ class TrackerBase(Quarantine):
         self.count = 0 # Keeps track of the number of processed dove locations
 
     @abc.abstractmethod
-    def tick(self, payload: dict):
+    def tick(self, payload: dict, performance_metrics: dict):
         """
         Process the payload and update internal state.
         """
@@ -90,8 +90,8 @@ class TrackerBase(Quarantine):
         try:
             for i, payload in enumerate(tqdm(gen)):
 
-                my_run.tick_and_predict(payload)
-                bmark_run.tick_and_predict(payload)
+                my_run.tick_and_predict(payload, {})
+                bmark_run.tick_and_predict(payload, {})
 
                 if (i + 1) % step_print == 0:
                     TrackerBase.report_relative_likelihood(log_like=my_run.overall_likelihood_score(),

@@ -62,7 +62,7 @@ class TorchGMMTracker(TrackerBase):
         # For logging or reference
         self.count = 0
 
-    def tick(self, payload):
+    def tick(self, payload, performance_metrics):
         """
         1) Parse x, t from the payload
         2) add_to_quarantine(t, x)

@@ -32,7 +32,7 @@ class SelfContainedMixtureTrackerExample:
         self.count = 0
         self.weights = [0.95, 0.05]  # Heavily weight the core distribution
 
-    def tick(self, payload):
+    def tick(self, payload, performance_metrics):
         """
         Ingest a new record (payload), store it internally, and update the
         estimated Gaussian mixture model.

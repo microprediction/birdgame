@@ -69,12 +69,12 @@ if using_sklearn:
             self.current_x = None
             self.burn_in = burn_in
 
-        def tick(self, payload):
+        def tick(self, payload, performance_metrics):
             """
             Tick both the fallback MixtureTracker and also gather data for the GMM model.
             """
             # 1) Always update fallback
-            self.fallback.tick(payload)
+            self.fallback.tick(payload, performance_metrics)
 
             # 2) GMM horizon logic
             x = payload["dove_location"]
