@@ -21,8 +21,10 @@ class NGBoostTracker(TrackerBase):
     window_size : int
         The number of previous data points (the sliding window size) used to predict the future value 
         at the horizon. It defines how many past observations are considered for prediction.
+    warmup : int
+        The number of ticks taken to warm up the model (wealth does not change during this period).
     """
-    def __init__(self, horizon=10, train_model_frequency=100, num_data_points_max=1000, window_size=5):
+    def __init__(self, horizon=10, train_model_frequency=100, num_data_points_max=1000, window_size=5, warmup=0):
         super().__init__(horizon)
         self.current_x = None
         self.last_observed_data = [] # Holds the last few observed data points
@@ -45,15 +47,30 @@ class NGBoostTracker(TrackerBase):
                                     random_state=None,
                                 ))
 
-    def tick(self, payload):
+        self.warmup_cutoff = warmup
+        self.tick_count = 0
+
+    def tick(self, payload, performance_metrics):
         """
         Ingest a new record (payload), store it internally and update the model.
+
+        Function signature can also look like tick(self, payload) since performance_metrics 
+        is an optional parameter.
 
         Parameters
         ----------
         payload : dict
             Must contain 'time' (int/float) and 'dove_location' (float).
+        performance_metrics : dict (is optional)
+            Dict containing 'wealth', 'likelihood_ewa', 'recent_likelihood_ewa'.
         """
+        # # To see the performance metrics on each tick
+        # print(f"performance_metrics: {performance_metrics}")
+
+        # # Can also trigger a warmup by checking if a performance metric drops below a threshold
+        # if performance_metrics['recent_likelihood_ewa'] < 1.1:
+        #     self.tick_count = 0
+
         x = payload['dove_location']
         t = payload['time']
         self.add_to_quarantine(t, x)
@@ -86,12 +103,20 @@ class NGBoostTracker(TrackerBase):
                 self.x_y_data = self.x_y_data[-(self.num_data_points_max + self.window_size * 2):]
                 self.last_observed_data = self.last_observed_data[-(self.window_size+1):]
             self.count += 1
+        
+        self.tick_count += 1
 
     def predict(self):
         """
         Return a dictionary representing the best guess of the distribution,
         modeled as a Gaussian distribution.
+
+        If the model is in the warmup period, return None.
         """
+        # Check if the model is warming up
+        if self.tick_count < self.warmup_cutoff:
+            return None
+
         # the central value (mean) of the gaussian distribution will be represented by the current value
         x_mean = self.current_x
         components = []

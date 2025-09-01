@@ -25,9 +25,11 @@ class AutoETSsktimeTracker(TrackerBase):
         ingested. This determines how often the model will be updated with new data.
     num_data_points_max : int
         The maximum number of data points to use for training the sktime model.
+    warmup : int
+        The number of ticks taken to warm up the model (wealth does not change during this period).
     """
 
-    def __init__(self, horizon=10, train_model_frequency=100, num_data_points_max=20):
+    def __init__(self, horizon=10, train_model_frequency=100, num_data_points_max=20, warmup=0):
         super().__init__(horizon)
         self.current_x = None
         self.last_observed_data = [] # Holds the last few observed data points
@@ -45,16 +47,31 @@ class AutoETSsktimeTracker(TrackerBase):
 
         # or Fit the AutoARIMA forecaster
         # self.forecaster = AutoARIMA(max_p=2, max_d=1, max_q=2, maxiter=10)
+
+        self.warmup_cutoff = warmup
+        self.tick_count = 0
         
-    def tick(self, payload):
+    def tick(self, payload, performance_metrics):
         """
         Ingest a new record (payload), store it internally and update the model.
+
+        Function signature can also look like tick(self, payload) since performance_metrics 
+        is an optional parameter.
 
         Parameters
         ----------
         payload : dict
             Must contain 'time' (int/float) and 'dove_location' (float).
+        performance_metrics : dict (is optional)
+            Dict containing 'wealth', 'likelihood_ewa', 'recent_likelihood_ewa'.
         """
+        # # To see the performance metrics on each tick
+        # print(f"performance_metrics: {performance_metrics}")
+
+        # # Can also trigger a warmup by checking if a performance metric drops below a threshold
+        # if performance_metrics['recent_likelihood_ewa'] < 1.1:
+        #     self.tick_count = 0
+
         x = payload['dove_location']
         t = payload['time']
         self.add_to_quarantine(t, x)
@@ -83,12 +100,20 @@ class AutoETSsktimeTracker(TrackerBase):
                 # Update last observed data (to limit memory usage as it will be run on continuous live data)
                 self.last_observed_data = self.last_observed_data[-(self.num_data_points_max + 2):]
             self.count += 1
+        
+        self.tick_count += 1
 
     def predict(self):
         """
         Return a dictionary representing the best guess of the distribution,
         modeled as a Gaussian distribution.
+
+        If the model is in the warmup period, return None.
         """
+        # Check if the model is warming up
+        if self.tick_count < self.warmup_cutoff:
+            return None
+
         # the central value (mean) of the gaussian distribution will be represented by the current value
         x_mean = self.current_x
         components = []
