@@ -60,6 +60,13 @@ class TrackerBase(Quarantine):
         """
         pass
 
+    def tick_and_predict(self, payload: dict, performance_metrics: dict) -> dict:
+        """
+        Combines the `tick` and `predict` methods.
+        """
+        self.tick(payload, performance_metrics)
+        return self.predict()
+
     @staticmethod
     def report_relative_likelihood(log_like, bmark_log_like):
         print(
