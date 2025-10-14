@@ -18,7 +18,7 @@ Run [animatebirds.py](https://github.com/microprediction/birdgame/blob/main/bird
 
 To create your tracker, you need to define a class that implements the `TrackerBase` interface. Specifically, your class must implement the following methods:
 
-1. **`tick(self, payload)`**  
+1. **`tick(self, payload, performance_metrics)`**  
    This method is called at every time step to process new payloads. Use this method to update your internal state or logic as needed.
 
    Payload Example:
@@ -40,15 +40,14 @@ You can refer to the [Tracker examples](https://github.com/microprediction/birdg
 
 Add in an optional parameter called performance_metrics to your tick method to obtain a dictionary of your performance metrics at each tick. This dictionary contains your wealth, likelihood_ewa, and recent_likelihood_ewa at the time of the current tick.
 
-### Usage Example:
+### Usage Example
+
 ```python
 def tick(self, payload, performance_metrics):
     print(f"performance_metrics: {performance_metrics}")
 ```
 
-Since performance_metrics is an optional parameter, the tick method signature can also look like tick(self, payload).
 You can find this implemented in the [Quickstarter Notebooks](https://github.com/microprediction/birdgame/tree/main/birdgame/examples/quickstarters) and in the [Example Models](https://github.com/microprediction/birdgame/tree/main/birdgame/models)
-
 
 ## Warm up your Tracker
 
