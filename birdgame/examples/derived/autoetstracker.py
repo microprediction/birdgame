@@ -14,7 +14,6 @@ warnings.filterwarnings("ignore", message="Non-stationary starting autoregressiv
 warnings.filterwarnings("ignore", message="Non-invertible starting MA parameters found")
 
 class AutoETSConstants:
-    HORIZON = 10
     TRAIN_MODEL_FREQUENCY=50
     NUM_DATA_POINTS_MAX=20
     WARMUP_CUTOFF=0
@@ -58,8 +57,8 @@ if using_sktime:
             When enabled, retraining happens in parallel without blocking predictions.
         """
 
-        def __init__(self):
-            super().__init__(AutoETSConstants.HORIZON)
+        def __init__(self, horizon=3):
+            super().__init__(horizon)
             self.current_x = None
             self.last_observed_data = [] # Holds the last few observed data points
             self.prev_t = 0

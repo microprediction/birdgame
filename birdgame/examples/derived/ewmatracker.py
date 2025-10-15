@@ -7,7 +7,6 @@ from birdgame.stats.fewvar import FEWVar
 
 
 class EMWAConstants:
-    HORIZON = 10
     FADE_FACTOR = 0.0001
 
 class EMWAVarTracker(TrackerBase):
@@ -24,8 +23,8 @@ class EMWAVarTracker(TrackerBase):
         The number of time steps into the future that predictions should be made for.
     """
 
-    def __init__(self):
-        super().__init__(EMWAConstants.HORIZON)
+    def __init__(self, horizon=3):
+        super().__init__(horizon)
         self.fading_factor = EMWAConstants.FADE_FACTOR
         self.current_x = None
         self.ewa_dx_core = FEWVar(fading_factor=EMWAConstants.FADE_FACTOR)

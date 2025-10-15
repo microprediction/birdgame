@@ -12,7 +12,6 @@ warnings.filterwarnings("ignore", message="Non-invertible starting MA parameters
 
 
 class NGBoostConstants:
-    HORIZON = 10
     TRAIN_MODEL_FREQUENCY=100
     NUM_DATA_POINTS_MAX=1000
     WINDOW_SIZE = 5
@@ -60,8 +59,8 @@ if using_ngboost:
             When enabled, retraining happens in parallel without blocking predictions.
         """
 
-        def __init__(self):
-            super().__init__(NGBoostConstants.HORIZON)
+        def __init__(self, horizon=3):
+            super().__init__(horizon)
             self.current_x = None
             self.last_observed_data = [] # Holds the last few observed data points
             self.x_y_data = [] # Holds pairs of previous and current data points
