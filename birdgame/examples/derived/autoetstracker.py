@@ -84,7 +84,12 @@ if using_sktime:
             # Threading tools
             self.use_threading = AutoETSConstants.USE_THREADING
             self._lock = threading.Lock()
-            self._retrain_thread = None
+            if self.use_threading:
+                self._cond = threading.Condition(self._lock)
+                self._new_data = None
+                self._stop_worker = False
+                self._worker_thread = threading.Thread(target=self._worker_retrain_model_async, daemon=True)
+                self._worker_thread.start()
 
         # ------------------- Tick -------------------
         def tick(self, payload, performance_metrics=None):
@@ -126,7 +131,10 @@ if using_sktime:
 
                     # Fit sktime model and variance prediction
                     if self.use_threading:
-                        self._retrain_model_async(y)
+                        # Signal background thread
+                        with self._cond:
+                            self._new_data = y
+                            self._cond.notify()
                     else:
                         self._retrain_model_sync(y)
 
@@ -156,10 +164,6 @@ if using_sktime:
                 # we predicted scale during tick training
                 scale = max(getattr(self, "scale", 1e-6), 1e-6)
 
-                # If you want to predict variance for each prediction
-                # scale = self.forecaster.predict_var(fh=self.fh)
-                # scale = np.sqrt(scale.values.flatten()[-1])
-
             # time.sleep(0.01)  # mimic short inference delay
 
             # Return the prediction density
@@ -188,29 +192,27 @@ if using_sktime:
         def _retrain_model_sync(self, y):
             """Synchronous retraining"""
             start_time = time.perf_counter()
-            new_forecaster, scale = self._fit(y)
-            with self._lock: # self-assignment must be done in self._lock
-                self.forecaster = new_forecaster
-                self.scale = scale
+            self.forecaster, self.scale = self._fit(y)
             # print(f"Sync retrain time: {(time.perf_counter()- start_time)*1000:.2f} ms") # check training time
 
-        def _retrain_model_async(self, y):
-            """Asynchronous retraining in a background thread"""
-            if self._retrain_thread is not None and self._retrain_thread.is_alive():
-                return # Skip if a thread is already running
+        def _worker_retrain_model_async(self):
+            """Asynchronous retraining in a background worker"""
+            while True:
+                with self._cond:
+                    # Wait until new data is available
+                    while self._new_data is None:
+                        self._cond.wait()
+                    y = self._new_data  # get the data to train on
+                    self._new_data = None  # clear it (so next signal is new data)
 
-            def train():
-                try:
-                    new_forecaster, scale = self._fit(y)
-                    with self._lock: # self-assignment must be done in self._lock
-                        self.forecaster = new_forecaster
-                        self.scale = scale
-                    # print("Async retraining done")
-                except Exception as e:
-                    print("Async retraining failed:", e)
+                # Train the model outside the lock (so predict() can still run)
+                new_forecaster, scale = self._fit(y)
 
-            self._retrain_thread = threading.Thread(target=train, daemon=True)
-            self._retrain_thread.start()
+                # Swap the trained model safely
+                with self._lock:
+                    self.forecaster = new_forecaster
+                    self.scale = scale
+                # print("Async retraining done")
 
 else:
     AutoETSsktimeTracker = None

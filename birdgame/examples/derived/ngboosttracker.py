@@ -96,7 +96,13 @@ if using_ngboost:
 
             # Threading tools
             self._lock = threading.Lock()
-            self._retrain_thread = None
+            if self.use_threading:
+                self._lock = threading.Lock()
+                self._cond = threading.Condition(self._lock)
+                self._new_data = None
+                self._stop_worker = False
+                self._worker_thread = threading.Thread(target=self._worker_retrain_model_async, daemon=True)
+                self._worker_thread.start()
 
         # ------------------- Tick -------------------
         def tick(self, payload, performance_metrics=None):
@@ -152,7 +158,9 @@ if using_ngboost:
 
                         # Fit a single NGBoost model (since we only need one model)
                         if self.use_threading:
-                            self._retrain_model_async(X, y)
+                            with self._cond:
+                                self._new_data = (X, y)  # overwrite old requests
+                                self._cond.notify()
                         else:
                             self._retrain_model_sync(X, y)
 
@@ -216,27 +224,26 @@ if using_ngboost:
         def _retrain_model_sync(self, X, y):
             """Synchronous retraining."""
             start_time = time.perf_counter()
-            new_model = self._fit(X, y)
-            with self._lock: # self-assignment must be done in self._lock
-                self.model = new_model
+            self.model = self._fit(X, y)
             # print(f"Sync retrain time: {(time.perf_counter()- start_time)*1000:.2f} ms") # check training time
 
-        def _retrain_model_async(self, X, y):
-            """Asynchronous retraining in background thread."""
-            if self._retrain_thread is not None and self._retrain_thread.is_alive():
-                return  # skip if already training
+        def _worker_retrain_model_async(self):
+            """Asynchronous retraining in a background worker"""
+            while True:
+                with self._cond:
+                    # Wait until new data is available
+                    while self._new_data is None:
+                        self._cond.wait()
+                    X, y = self._new_data  # get the data to train on
+                    self._new_data = None  # clear it (so next signal is new data)
 
-            def train():
-                try:
-                    new_model = self._fit(X, y)
-                    with self._lock: # self-assignment must be done in self._lock
-                        self.model = new_model
-                    # print("Async retrain done")
-                except Exception as e:
-                    print("Async retraining failed:", e)
+                # Train the model outside the lock (so predict() can still run)
+                new_model = self._fit(X, y)
 
-            self._retrain_thread = threading.Thread(target=train, daemon=True)
-            self._retrain_thread.start()
+                # Swap the trained model safely
+                with self._lock:
+                    self.model = new_model
+                # print("Async retraining done")
 
 else:
     NGBoostTracker = None
