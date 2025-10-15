@@ -1,8 +1,10 @@
 import os
 import math
+import time
 import pandas as pd
 import numpy as np
 from birdgame.trackers.trackerbase import TrackerBase
+import threading
 import warnings
 
 warnings.filterwarnings("ignore", message="Non-stationary starting autoregressive parameters")
@@ -14,11 +16,14 @@ class NGBoostConstants:
     TRAIN_MODEL_FREQUENCY=100
     NUM_DATA_POINTS_MAX=1000
     WINDOW_SIZE = 5
+    WARMUP_CUTOFF = 0
+    USE_THREADING=True # Set this to True for live data streams where each `tick()` and `predict()` call must complete within ~50 ms
 
 try:
     from ngboost import NGBoost
     from ngboost.distns import Normal
     from sklearn.tree import DecisionTreeRegressor
+    from sklearn.base import clone
     using_ngboost = True
 except ImportError:
     print('To run this example you need to pip install ngboost scikit-learn')
@@ -32,53 +37,92 @@ if using_ngboost:
 
         Parameters
         ----------
+        A model that tracks the dove location using NGBoost.
+
+        Parameters
+        ----------
         horizon : int
             The number of time steps into the future that predictions should be made for.
         train_model_frequency : int
-            The frequency at which the NGBoost model will be retrained based on the count of observations
+            The frequency at which the NGBoost model will be retrained based on the count of observations 
             ingested. This determines how often the model will be updated with new data.
         num_data_points_max : int
             The maximum number of data points to use for training the NGBoost model.
         window_size : int
-            The number of previous data points (the sliding window size) used to predict the future value
+            The number of previous data points (the sliding window size) used to predict the future value 
             at the horizon. It defines how many past observations are considered for prediction.
+        warmup : int
+            The number of ticks taken to warm up the model (wealth does not change during this period).
+        use_threading : bool
+            Whether to retrain the model asynchronously in a background thread.  
+            /!/ Set this to True for live data streams where each `tick()`  
+            and `predict()` call must complete within ~50 ms.  
+            When enabled, retraining happens in parallel without blocking predictions.
         """
 
         def __init__(self):
             super().__init__(NGBoostConstants.HORIZON)
             self.current_x = None
-            self.last_observed_data = []  # Holds the last few observed data points
-            self.x_y_data = []  # Holds pairs of previous and current data points
+            self.last_observed_data = [] # Holds the last few observed data points
+            self.x_y_data = [] # Holds pairs of previous and current data points
 
             self.train_model_frequency = NGBoostConstants.TRAIN_MODEL_FREQUENCY
-            self.num_data_points_max = NGBoostConstants.NUM_DATA_POINTS_MAX  # (X.shape[0])
-            self.window_size = NGBoostConstants.WINDOW_SIZE  # (X.shape[1])
+            self.num_data_points_max = NGBoostConstants.NUM_DATA_POINTS_MAX # (X.shape[0])
+            self.window_size = NGBoostConstants.WINDOW_SIZE # (X.shape[1])
+            self.warmup_cutoff = NGBoostConstants.WARMUP_CUTOFF
+            self.use_threading = NGBoostConstants.USE_THREADING
 
-            # Initialize the NGBoost model
-            self.model = NGBoost(Dist=Normal, learning_rate=0.1, n_estimators=50, natural_gradient=True, verbose=False,
-                                 random_state=15,
-                                 validation_fraction=0.1, early_stopping_rounds=None,
-                                 Base=DecisionTreeRegressor(
-                                     criterion="friedman_mse",
-                                     min_samples_split=2,
-                                     min_samples_leaf=1,
-                                     min_weight_fraction_leaf=0.0,
-                                     max_depth=5,
-                                     splitter="best",
-                                     random_state=None,
-                                 ))
+            # Initialize NGBoost model
+            self.model = NGBoost(
+                Dist=Normal,
+                learning_rate=0.1,
+                n_estimators=50,
+                natural_gradient=True,
+                verbose=False,
+                random_state=15,
+                validation_fraction=0.1,
+                early_stopping_rounds=None,
+                Base=DecisionTreeRegressor(
+                    criterion="friedman_mse",
+                    min_samples_split=2,
+                    min_samples_leaf=1,
+                    max_depth=5,
+                    splitter="best",
+                ),
+            )
 
-        def tick(self, payload, performance_metrics):
+            # Internal counters
+            self.tick_count = 0
+
+            # Threading tools
+            self._lock = threading.Lock()
+            self._retrain_thread = None
+
+        # ------------------- Tick -------------------
+        def tick(self, payload, performance_metrics=None):
             """
             Ingest a new record (payload), store it internally and update the model.
+
+            Function signature can also look like tick(self, payload) since performance_metrics 
+            is an optional parameter.
 
             Parameters
             ----------
             payload : dict
                 Must contain 'time' (int/float) and 'dove_location' (float).
+            performance_metrics : dict (is optional)
+                Dict containing 'wealth', 'likelihood_ewa', 'recent_likelihood_ewa'.
             """
-            x = payload['dove_location']
-            t = payload['time']
+            # # To see the performance metrics on each tick
+            # print(f"performance_metrics: {performance_metrics}")
+
+            # # Can also trigger a warmup by checking if a performance metric drops below a threshold
+            # if performance_metrics['recent_likelihood_ewa'] < 1.1:
+            #     self.tick_count = 0
+
+            x = payload["dove_location"]
+            t = payload["time"]
+
             self.add_to_quarantine(t, x)
             self.last_observed_data.append(x)
             self.current_x = x
@@ -87,8 +131,8 @@ if using_ngboost:
             if prev_x is not None:
                 self.x_y_data.append((prev_x, x))
 
+                # retraining condition
                 if self.count > self.window_size and self.count % self.train_model_frequency == 0:
-
                     x_y_data = np.array(self.x_y_data)
                     xi_values = x_y_data[:, 0]
                     yi_values = x_y_data[:, 1]
@@ -96,60 +140,103 @@ if using_ngboost:
                     # Determine the number of data points to use for training
                     num_data_points = min(len(xi_values), self.num_data_points_max)
                     if len(xi_values) < self.num_data_points_max + self.window_size:
-                        num_data_points = num_data_points - (self.window_size + 3)
+                        num_data_points = max(0, num_data_points - (self.window_size + 3))
 
-                    # Construct 'X' with fixed-size slices and 'y' as the values to predict
-                    X = np.lib.stride_tricks.sliding_window_view(xi_values[-(num_data_points + self.window_size - 1):],
-                                                                 self.window_size)
-                    y = yi_values[-num_data_points:]
+                    if num_data_points > self.window_size + 2:
+                        # Construct 'X' with fixed-size slices and 'y' as the values to predict
+                        X = np.lib.stride_tricks.sliding_window_view(
+                            xi_values[-(num_data_points + self.window_size - 1):],
+                            self.window_size,
+                        )
+                        y = yi_values[-num_data_points:]
 
-                    # Fit a single NGBoost model (since we only need one model)
-                    self.model.fit(X, y)
+                        # Fit a single NGBoost model (since we only need one model)
+                        if self.use_threading:
+                            self._retrain_model_async(X, y)
+                        else:
+                            self._retrain_model_sync(X, y)
 
                     # Keep only latest data (to limit memory usage as it will be run on continuous live data)
                     self.x_y_data = self.x_y_data[-(self.num_data_points_max + self.window_size * 2):]
                     self.last_observed_data = self.last_observed_data[-(self.window_size + 1):]
+
                 self.count += 1
 
+            self.tick_count += 1
+
+        # ------------------- Prediction -------------------
         def predict(self):
             """
             Return a dictionary representing the best guess of the distribution,
             modeled as a Gaussian distribution.
+
+            If the model is in the warmup period, return None.
             """
-            # the central value (mean) of the gaussian distribution will be represented by the current value
-            x_mean = self.current_x
-            components = []
+            with self._lock:
+                # Check if the model is warming up
+                if self.tick_count < self.warmup_cutoff:
+                    return None
+                
+                start_time = time.perf_counter()
 
-            try:
-                X_input = np.array([self.last_observed_data[-(self.window_size + 1):]])
+                # the central value (mean) of the gaussian distribution will be represented by the current value
+                x_mean = self.current_x
+                try:
+                    X_input = np.array([self.last_observed_data[-self.window_size:]])
+                    y_test_ngb = self.model.pred_dist(X_input)
+                    loc = x_mean  # can use y_test_ngb.loc[0] if you prefer model mean
+                    scale = max(y_test_ngb.scale[0], 1e-6) # get the parameter scale from ngboost normal distribution class
+                except Exception:
+                    loc = x_mean
+                    scale = 1e-6
 
-                # Get the predicted distribution
-                y_test_ngb = self.model.pred_dist(X_input)
+                elapsed_ms = (time.perf_counter() - start_time) * 1000  # ms
+                # print(f"predict() took {elapsed_ms:.2f} ms")
+                if elapsed_ms > 50:
+                    print(f"predict() took {elapsed_ms:.2f} ms")
 
-                # here we use current value as loc but you can get the parameter loc from ngboost normal distribution class: y_test_ngb.loc[0]
-                loc = x_mean
-
-                scale = y_test_ngb.scale[0]  # get the parameter scale from ngboost normal distribution class
-                scale = max(scale, 1e-6)
-            except:
-                loc = x_mean
-                scale = 1e-6
+            # time.sleep(0.01)  # mimic short inference delay
 
             components = {
-                "density": {
-                    "type": "builtin",
-                    "name": "norm",
-                    "params": {"loc": loc, "scale": scale}
-                },
-                "weight": 1
+                "density": {"type": "builtin", "name": "norm", "params": {"loc": loc, "scale": scale}},
+                "weight": 1,
             }
+            return {"type": "mixture", "components": [components]}
 
-            prediction_density = {
-                "type": "mixture",
-                "components": [components]
-            }
+        # ------------------- Model training -------------------
+        def _fit(self, X, y):
+            """Train a fresh NGBoost model and return it."""
+            if X.shape[0] < 5:
+                return self.model  # skip tiny samples
 
-            return prediction_density
+            new_model = clone(self.model)
+            new_model.fit(X, y)
+            return new_model
+
+        def _retrain_model_sync(self, X, y):
+            """Synchronous retraining."""
+            start_time = time.perf_counter()
+            new_model = self._fit(X, y)
+            with self._lock: # self-assignment must be done in self._lock
+                self.model = new_model
+            # print(f"Sync retrain time: {(time.perf_counter()- start_time)*1000:.2f} ms") # check training time
+
+        def _retrain_model_async(self, X, y):
+            """Asynchronous retraining in background thread."""
+            if self._retrain_thread is not None and self._retrain_thread.is_alive():
+                return  # skip if already training
+
+            def train():
+                try:
+                    new_model = self._fit(X, y)
+                    with self._lock: # self-assignment must be done in self._lock
+                        self.model = new_model
+                    # print("Async retrain done")
+                except Exception as e:
+                    print("Async retraining failed:", e)
+
+            self._retrain_thread = threading.Thread(target=train, daemon=True)
+            self._retrain_thread.start()
 
 else:
     NGBoostTracker = None
@@ -158,8 +245,10 @@ else:
 
 
 if __name__ == '__main__':
+    live=True # Set to True to use live streaming data; set to False to use data from a CSV file
+    NGBoostConstants.USE_THREADING = live    
     tracker = NGBoostTracker()
     tracker.test_run(
-        live=False, # Set to True to use live streaming data; set to False to use data from a CSV file
+        live=live,
         step_print=2000 # How often to print scores
     )
