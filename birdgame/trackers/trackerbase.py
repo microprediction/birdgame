@@ -69,6 +69,9 @@ class TrackerBase(Quarantine):
 
     @staticmethod
     def report_relative_likelihood(log_like, bmark_log_like):
+        if not log_like or not bmark_log_like:
+            return
+
         print(
             f"My likelihood score: {log_like:.4f} VS Benchmark likelihood score: {bmark_log_like:.4f}")
         if log_like > bmark_log_like:
