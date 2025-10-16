@@ -2,6 +2,7 @@ from pprint import pprint
 import math
 import numpy as np
 from birdgame.trackers.trackerbase import TrackerBase
+from birdgame import HORIZON
 from birdgame.datasources.livedata import live_data_generator
 from densitypdf import density_pdf
 from birdgame.examples.derived.mixturetracker import MixtureTracker
@@ -32,7 +33,7 @@ if using_sklearn:
         def __init__(
             self,
             n_components=2,
-            horizon=3,
+            horizon=HORIZON,
             batch_size=500,
             burn_in=2000,
             data_shrinkage=0.0,
@@ -41,7 +42,7 @@ if using_sklearn:
             """
             Args:
                 n_components (int): Number of Gaussian components in the GMM
-                horizon (int): # steps in quarantine before we pop from it
+                horizon (int): # The prediction horizon in seconds
                 batch_size (int): # of differences to accumulate before re-fitting GMM
                 burn_in (int): # observations until we switch to GMM predictions
                 data_shrinkage (float): fraction of the sample mean to remove from X before fitting
@@ -178,7 +179,6 @@ else:
 if __name__ == '__main__':
     tracker = GMMTracker(
         n_components=2,
-        horizon=3,
         batch_size=200,
         burn_in=1000,
         window_len=10000,

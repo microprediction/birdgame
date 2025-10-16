@@ -1,4 +1,5 @@
 from birdgame.trackers.trackerbase import TrackerBase
+from birdgame import HORIZON
 from birdgame.datasources.livedata import live_data_generator
 from pprint import pprint
 import math
@@ -20,10 +21,10 @@ class EMWAVarTracker(TrackerBase):
     fading_factor : float
         Parameter controlling how quickly older data is de-emphasized in variance estimation.
     horizon : int
-        The number of time steps into the future that predictions should be made for.
+        The prediction horizon in seconds (how far into the future predictions should be made).
     """
 
-    def __init__(self, horizon=3):
+    def __init__(self, horizon=HORIZON):
         super().__init__(horizon)
         self.fading_factor = EMWAConstants.FADE_FACTOR
         self.current_x = None

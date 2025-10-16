@@ -2,6 +2,7 @@ import math
 import numpy as np
 from collections import deque
 from birdgame.trackers.trackerbase import TrackerBase
+from birdgame import HORIZON
 from birdgame.examples.derived.gmmtracker import GMMTracker
 from densitypdf import density_pdf
 from birdgame.stats.fewvar import FEWVar
@@ -18,7 +19,7 @@ class VolScaledGMMTracker(TrackerBase):
         gmm_tracker=None,
         n_components=2,
         scale_cap=3.0,
-        horizon=3,
+        horizon=HORIZON,
         batch_size=200,
         burn_in=1000,
         window_len=10000,
@@ -144,7 +145,6 @@ if __name__ == '__main__':
     # Example usage: create a VolScaledGMMTracker with default GMMTracker under the hood.
     tracker = VolScaledGMMTracker(
         n_components=2,
-        horizon=3,
         batch_size=200,
         burn_in=1000,
         window_len=10000,
@@ -153,4 +153,4 @@ if __name__ == '__main__':
         fading_factor=0.01  # for FEWVar
     )
     # Test-run method (assuming 'test_run' is from your TrackerBase):
-    tracker.test_run(live=False, step_print=200)
+    tracker.test_run(live=True, step_print=200)

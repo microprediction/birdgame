@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 from tqdm.auto import tqdm
-from birdgame.trackers.trackerbase import TrackerBase
 import numpy as np
 import threading
 import warnings
@@ -13,8 +12,12 @@ import warnings
 warnings.filterwarnings("ignore", message="Non-stationary starting autoregressive parameters")
 warnings.filterwarnings("ignore", message="Non-invertible starting MA parameters found")
 
+from birdgame.trackers.trackerbase import TrackerBase
+from birdgame import HORIZON
+
 class AutoETSConstants:
-    TRAIN_MODEL_FREQUENCY=50
+    MIN_SAMPLES = 5
+    TRAIN_MODEL_FREQUENCY=2
     NUM_DATA_POINTS_MAX=20
     WARMUP_CUTOFF=0
     USE_THREADING=True # Set this to True for live data streams where each `tick()` and `predict()` call must complete within ~50 ms
@@ -42,7 +45,7 @@ if using_sktime:
         Parameters
         ----------
         horizon : int
-            The number of time steps into the future that predictions should be made for.
+            The prediction horizon in seconds (how far into the future predictions should be made).
         train_model_frequency : int
             The frequency at which the sktime model will be retrained based on the count of observations 
             ingested. This determines how often the model will be updated with new data.
@@ -57,12 +60,13 @@ if using_sktime:
             When enabled, retraining happens in parallel without blocking predictions.
         """
 
-        def __init__(self, horizon=3):
+        def __init__(self, horizon=HORIZON):
             super().__init__(horizon)
             self.current_x = None
             self.last_observed_data = [] # Holds the last few observed data points
             self.prev_t = 0
 
+            self.min_samples = AutoETSConstants.MIN_SAMPLES
             self.train_model_frequency = AutoETSConstants.TRAIN_MODEL_FREQUENCY
             self.num_data_points_max = AutoETSConstants.NUM_DATA_POINTS_MAX
 
@@ -117,14 +121,12 @@ if using_sktime:
             self.add_to_quarantine(t, x)
             self.current_x = x
 
+            # Collect and process observations only at horizon-based intervals
             if t > self.prev_t + self.horizon:
                 self.last_observed_data.append(x)
                 self.prev_t = t
 
-            prev_x = self.pop_from_quarantine(t)
-
-            if prev_x is not None:
-                if self.count > 10 and self.count % self.train_model_frequency == 0:
+                if self.count == self.min_samples or (self.count > self.min_samples and self.count % self.train_model_frequency == 0):
                     # Construct 'y' as an univariate serie
                     y = np.array(self.last_observed_data)[-self.num_data_points_max:]
 
@@ -211,7 +213,7 @@ if using_sktime:
                 with self._lock:
                     self.forecaster = new_forecaster
                     self.scale = scale
-                # print("Async retraining done")
+                print("Async retraining done")
 
 else:
     AutoETSsktimeTracker = None

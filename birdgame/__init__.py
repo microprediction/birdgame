@@ -1,0 +1,1 @@
+from birdgame.constants import HORIZON as HORIZON

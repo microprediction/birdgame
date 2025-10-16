@@ -4,6 +4,7 @@ import time
 import pandas as pd
 import numpy as np
 from birdgame.trackers.trackerbase import TrackerBase
+from birdgame import HORIZON
 import threading
 import warnings
 
@@ -41,7 +42,7 @@ if using_ngboost:
         Parameters
         ----------
         horizon : int
-            The number of time steps into the future that predictions should be made for.
+            The prediction horizon in seconds (how far into the future predictions should be made).
         train_model_frequency : int
             The frequency at which the NGBoost model will be retrained based on the count of observations 
             ingested. This determines how often the model will be updated with new data.
@@ -59,7 +60,7 @@ if using_ngboost:
             When enabled, retraining happens in parallel without blocking predictions.
         """
 
-        def __init__(self, horizon=3):
+        def __init__(self, horizon=HORIZON):
             super().__init__(horizon)
             self.current_x = None
             self.last_observed_data = [] # Holds the last few observed data points
@@ -242,7 +243,7 @@ if using_ngboost:
                 # Swap the trained model safely
                 with self._lock:
                     self.model = new_model
-                # print("Async retraining done")
+                print("Async retraining done")
 
 else:
     NGBoostTracker = None
