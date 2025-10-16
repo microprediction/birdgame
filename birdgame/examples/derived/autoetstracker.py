@@ -213,7 +213,7 @@ if using_sktime:
                 with self._lock:
                     self.forecaster = new_forecaster
                     self.scale = scale
-                print("Async retraining done")
+                # print("Async retraining done")
 
 else:
     AutoETSsktimeTracker = None

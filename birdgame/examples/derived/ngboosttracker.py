@@ -243,7 +243,7 @@ if using_ngboost:
                 # Swap the trained model safely
                 with self._lock:
                     self.model = new_model
-                print("Async retraining done")
+                # print("Async retraining done")
 
 else:
     NGBoostTracker = None

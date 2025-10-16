@@ -24,7 +24,7 @@ def live_data_generator(start_from_latest=True):
     """
     config = get_redis_config()
     client = redis.Redis(**config)
-    stream_name = 'dev_bird_game_public'
+    stream_name = 'prod_bird_game_public'
 
     # Determine the last existing message in the stream
     last_id = "$" if start_from_latest else "0-0"
