@@ -1,6 +1,7 @@
 from pprint import pprint
 
 from birdgame.trackers.trackerbase import TrackerBase
+from birdgame import HORIZON
 from birdgame.stats.fewvar import FEWVar
 import math
 from densitypdf import density_pdf
@@ -15,7 +16,7 @@ class MixtureTracker(TrackerBase):
     distribution and another with a larger variance to capture the tails.
     """
 
-    def __init__(self, fading_factor=0.0001, horizon=3):
+    def __init__(self, fading_factor=0.0001, horizon=HORIZON):
         super().__init__(horizon)
         self.fading_factor = fading_factor
         self.current_x = None

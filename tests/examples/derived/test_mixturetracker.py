@@ -2,8 +2,6 @@ from birdgame.examples.derived.mixturetracker import MixtureTracker
 from birdgame.datasources.remotetestdata import remote_test_data_generator
 from densitypdf import density_pdf
 
-from birdgame.models.quantileregression import QuantileRegressionRiverTracker
-
 
 def test_self():
     tracker = MixtureTracker()
@@ -16,7 +14,3 @@ def test_self():
             break
 
     assert True
-
-def test_run():
-    tracker = QuantileRegressionRiverTracker()
-    tracker.test_run(live=False, max_rows=1000)

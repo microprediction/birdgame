@@ -1,6 +1,7 @@
 import math
 import numpy as np
 from birdgame.trackers.trackerbase import TrackerBase
+from birdgame import HORIZON
 from birdgame.stats.fewvar import FEWVar
 
 
@@ -18,7 +19,7 @@ class EMWAVarTracker(TrackerBase):
         The "look-ahead" in time after which the recorded data becomes valid for updating.
     """
 
-    def __init__(self, fading_factor=0.0001, horizon=10):
+    def __init__(self, fading_factor=0.0001, horizon=HORIZON):
         super().__init__(horizon)
         self.fading_factor = fading_factor
         self.current_x = None

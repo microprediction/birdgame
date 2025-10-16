@@ -1,7 +1,7 @@
 pandas
 river
 density
-densitypdf
+densitypdf>=0.1.4
 matplotlib
 redis
 orjson

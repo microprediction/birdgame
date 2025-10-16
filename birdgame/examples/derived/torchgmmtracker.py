@@ -1,4 +1,5 @@
 from birdgame.trackers.trackerbase import TrackerBase
+from birdgame import HORIZON
 import threading
 import torch
 import numpy as np
@@ -25,13 +26,13 @@ class TorchGMMTracker(TrackerBase):
 
     def __init__(
         self,
-        horizon=3,
+        horizon=HORIZON,
         n_components=2,
         batch_size=1000
     ):
         """
         Args:
-            horizon (int): how many ticks before we pop data from quarantine
+            horizon (int): The prediction horizon in seconds
             n_components (int): number of Gaussians in the mixture
             batch_size (int): how many data points to buffer before refitting
         """
@@ -159,5 +160,5 @@ class TorchGMMTracker(TrackerBase):
 
 if __name__ == "__main__":
     # Simple demonstration (only works if tgmm is installed)
-    tracker = TorchGMMTracker(horizon=3, n_components=2, batch_size=1000)
+    tracker = TorchGMMTracker(n_components=2, batch_size=1000)
     tracker.test_run(live=True,step_print=100)
