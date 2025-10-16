@@ -97,7 +97,6 @@ if using_ngboost:
             # Threading tools
             self._lock = threading.Lock()
             if self.use_threading:
-                self._lock = threading.Lock()
                 self._cond = threading.Condition(self._lock)
                 self._new_data = None
                 self._stop_worker = False
