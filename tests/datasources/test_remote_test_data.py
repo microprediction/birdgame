@@ -10,7 +10,7 @@ def test_remote_test_data():
 
 
 def test_remote_test_data_generator():
-    generator = remote_test_data_generator()
+    generator = remote_test_data_generator(start_time=0)
     first_record = next(generator)
     assert isinstance(first_record, dict)
     assert len(first_record) > 0

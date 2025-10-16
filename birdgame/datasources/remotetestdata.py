@@ -1,7 +1,7 @@
 import pandas as pd
 import math
 
-TEST_DATA_START_TIME = 90000
+TEST_DATA_START_TIME = 90
 
 def remote_test_data() -> pd.DataFrame:
     return pd.read_csv(
