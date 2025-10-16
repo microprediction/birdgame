@@ -1,5 +1,6 @@
 import typing
 import numpy as np
+from birdgame import HORIZON
 from birdgame.stats.fewvar import FEWVar
 import math
 from birdgame.datasources.remotetestdata import remote_test_data_generator
@@ -22,7 +23,7 @@ class SelfContainedMixtureTrackerExample:
         The "look-ahead" in time after which the recorded data becomes valid for updating.
     """
 
-    def __init__(self, fading_factor=0.0001, horizon=10):
+    def __init__(self, fading_factor=0.0001, horizon=HORIZON):
         self.fading_factor = fading_factor
         self.horizon = horizon
         self.current_x = None
