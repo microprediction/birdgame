@@ -73,7 +73,7 @@ class TrackerBase(Quarantine):
             return
 
         print(
-            f"My likelihood score: {log_like:.4f} VS Benchmark likelihood score: {bmark_log_like:.4f}")
+            f"My log-likelihood score: {log_like:.4f} VS Benchmark log-likelihood score: {bmark_log_like:.4f}")
         if log_like > bmark_log_like:
             print(
                 f'     .... and mine is better. Ratio is {log_like / bmark_log_like:.5f}')
