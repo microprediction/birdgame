@@ -29,6 +29,7 @@ class TrackerEvaluator(Quarantine):
         self.scores = []
         self.score_window_size = score_window_size
         self.latest_scores = deque(maxlen=score_window_size)  # Keeps only the last `score_window_size` scores
+        self.last_score = None
 
         self.time = None
         self.dove_location = None
@@ -46,11 +47,13 @@ class TrackerEvaluator(Quarantine):
         prev_prediction = self.pop_from_quarantine(current_time)
 
         if not prev_prediction:
+            self.last_score = None
             return
 
         density = density_pdf(density_dict=prev_prediction, x=payload['dove_location'])
         self.scores.append(density)
         self.latest_scores.append(density) # Maintain a rolling window of recent scores
+        self.last_score = density
         self.latest_valid_prediction = prev_prediction
 
         self.time = current_time
