@@ -13,7 +13,7 @@ def safe_decode(value):
     return value.decode() if isinstance(value, bytes) else value
 
 
-def live_data_generator(start_from_latest=True):
+def live_data_generator(start_from_latest=True, max_rows=None):
     """
        Generate data from the bird game. by default this will read from the start of the stream and then transition to live play.
 
@@ -32,7 +32,14 @@ def live_data_generator(start_from_latest=True):
     retries = 0
     max_retries = 5  # Limit the maximum retries to avoid infinite loops
 
+    count_rows = 0  # Keep track of how many rows have been yielded
+
     while True:
+        # Stop if max_rows limit reached
+        if max_rows is not None and count_rows >= max_rows:
+            bird_logger.info(f"Reached MAX_ROWS={max_rows}. Stopping generator.")
+            break
+
         try:
             # Fetch messages from Redis stream
             messages = client.xread(
@@ -70,6 +77,12 @@ def live_data_generator(start_from_latest=True):
                         data = {k: data[k] for k in key_order}
 
                         yield data
+                        count_rows += 1
+
+                        # Stop early if we've reached the limit
+                        if max_rows is not None and count_rows >= max_rows:
+                            bird_logger.info(f"Reached MAX_ROWS={max_rows}. Stopping generator.")
+                            return
 
         except (ConnectionError, TimeoutError) as e:
             bird_logger.error(f"Redis connection error: {e}")
@@ -94,6 +107,6 @@ def live_data_generator(start_from_latest=True):
 
 
 if __name__ == '__main__':
-    gen = live_data_generator()
-    for _ in range(3):
-        print(next(gen))
+    gen = live_data_generator(MAX_ROWS=10)
+    for i, payload in enumerate(gen):
+        print(payload)

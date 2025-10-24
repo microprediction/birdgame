@@ -96,7 +96,7 @@ class TrackerBase(Quarantine):
         benchmark_tracker = EMWAVarTracker(horizon=self.horizon)
         my_run, bmark_run = TrackerEvaluator(self), TrackerEvaluator(benchmark_tracker)
 
-        gen = live_data_generator() if live else remote_test_data_generator(max_rows=max_rows)
+        gen = live_data_generator(max_rows=max_rows) if live else remote_test_data_generator(max_rows=max_rows)
         try:
             for i, payload in enumerate(tqdm(gen)):
 
@@ -113,7 +113,7 @@ class TrackerBase(Quarantine):
         except KeyboardInterrupt:
             print("Interrupted")
 
-    def test_run_animated(self, live=True, n_data_points=50, recent_score_window_size=100, interval_animation=100, from_notebook=False):
+    def test_run_animated(self, live=True, n_data_points=50, recent_score_window_size=100, interval_animation=100, from_notebook=False, max_rows=None):
         """
         Run a test simulation with an animated visualization of predictions.
         """
@@ -126,7 +126,7 @@ class TrackerBase(Quarantine):
         benchmark_tracker = EMWAVarTracker(horizon=self.horizon)
         my_run, bmark_run = TrackerEvaluator(self, recent_score_window_size), TrackerEvaluator(benchmark_tracker, recent_score_window_size)
 
-        gen = live_data_generator() if live else remote_test_data_generator()
+        gen = live_data_generator(max_rows=max_rows) if live else remote_test_data_generator(max_rows=max_rows)
 
         use_plt_show = True if not from_notebook else False
         animated = animated_predictions_graph(gen, my_run, bmark_run, n_data_points=n_data_points, 
