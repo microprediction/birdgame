@@ -9,7 +9,7 @@ REQUIREMENTS = (HERE / "requirements.txt").read_text().splitlines()
 
 setup(
     name="birdgame",
-    version="0.2.0",
+    version="0.2.1",
     description="Utilities to help play the Bird Game at crunchdao.com",
     long_description=README,
     long_description_content_type="text/markdown",
