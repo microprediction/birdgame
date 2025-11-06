@@ -3,16 +3,12 @@
 We've just rolled out an **important update** to the wealth distribution logic in *Birdgame*.  
 This new mechanism aims to make the game **more stable**, **less luck-driven** and **more reflective of consistent performance** across long time.
 
----
-
 ## What Changed
 
 Previously, each player's wealth was updated **purely based on their instantaneous likelihood score** for each prediction tick.  
 While this was simple and responsive, it also made the results quite **volatile**, wealth could fluctuate rapidly, sometimes due to short-term randomness rather than consistent performance.
 
 To improve stability and reward consistent performance, we've included a **timescale exponential weighting system**.
-
----
 
 ## The New Formula
 
@@ -65,7 +61,7 @@ share = (1 - ewma_weight) * instant_share + ewma_weight * ewma_share
 ```
 
 where:
-- ```ewma_weight = 1.0``` → fully rely on ewma log-likelihood performance
+- ```ewma_weight = 1.0``` → fully rely on ewma log-likelihood performances
 - ```ewma_weight = 0.0``` → purely short-term reactions
 
 ## Current Game Parameters
@@ -95,4 +91,4 @@ GAME_PARAMS = {
 - Even if your wealth reaches zero, you can still make a comeback. Since your investment will be zero, you won't lose anything more, but you can still earn from the shared pot if your tracker performs well.
 
 
-**You can test the wealth distribution mechanism in the notebook [wealth_distribution](https://github.com/microprediction/birdgame/blob/wealth_distribution_v2/birdgame/examples/quickstarters/wealth_distribution.ipynb).**
+**You can test the wealth distribution mechanism in the notebook [wealth_distribution](https://github.com/microprediction/birdgame/blob/main/birdgame/examples/quickstarters/wealth_distribution.ipynb).**
