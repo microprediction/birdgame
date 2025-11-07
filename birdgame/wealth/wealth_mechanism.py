@@ -45,10 +45,11 @@ def update_wealth(players, likelihoods, params=GAME_PARAMS, wealth_update=True):
         # Blend short-term log-likelihood and long-term log-likelihood performance
         player["ewma_blend_logL"] = params["w_short"] * player["ewma_short_logL"] + (1 - params["w_short"]) * player["ewma_long_logL"]
 
-    # --- Compute normalized EWMA weights ---
-    ewmas = {name: players[name]["ewma_blend_logL"] for name in valid_likelihoods}
-    max_ewma = max(ewmas.values())
-    rel_ewma = {name: math.exp(ewmas[name] - max_ewma) for name in ewmas}
+    # --- Compute exponential of "ewma_blend_logL" ---
+    # ewmas = {name: players[name]["ewma_blend_logL"] for name in valid_likelihoods}
+    # max_ewma = max(ewmas.values())
+    # rel_ewma = {name: math.exp(ewmas[name] - max_ewma) for name in ewmas} # depreciated
+    rel_ewma = {name: math.exp(players[name]["ewma_blend_logL"]) for name in valid_likelihoods}
 
     # Compute totals for normalization
     total_likelihood = sum(valid_likelihoods.values())

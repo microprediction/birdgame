@@ -27,11 +27,6 @@ These are blended into a single **performance metric**:
 ewma_blend_logL = w_short * ewma_short_logL + (1 - w_short) * ewma_long_logL
 ```
 
-and normalized across players to compute relative EWMA weights:
-```python
-rel_ewma = exp(ewma_blend_logL - max(all_players_ewma_blend_logL))
-```
-
 By default:
 ```python
 w_short = 0.5
